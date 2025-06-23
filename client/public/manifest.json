@@ -1,0 +1,92 @@
+{
+  "short_name": "FastVerify",
+  "name": "FastVerify - Voter Verification System",
+  "description": "Secure, instant voter validation system for polling booths",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    },
+    {
+      "src": "logo192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "logo512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["government", "utilities", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Voter Search",
+      "short_name": "Search",
+      "description": "Search for voters to verify",
+      "url": "/search",
+      "icons": [{ "src": "logo192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "QR Scanner",
+      "short_name": "QR Scan",
+      "description": "Scan voter QR codes",
+      "url": "/scan",
+      "icons": [{ "src": "logo192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "View verification analytics",
+      "url": "/analytics",
+      "icons": [{ "src": "logo192.svg", "sizes": "192x192" }]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "fastverify",
+      "url": "/verify?data=%s"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "FastVerify Dashboard"
+    },
+    {
+      "src": "screenshot-narrow.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "FastVerify Mobile"
+    }
+  ]
+}

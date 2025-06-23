@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom styles */
+.glass-effect {
+  @apply bg-white/80 backdrop-blur-sm border border-white/20;
+}
+
+.card-shadow {
+  @apply shadow-lg shadow-black/10;
+}
+
+.btn-primary {
+  @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-success {
+  @apply bg-success-600 hover:bg-success-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-danger {
+  @apply bg-danger-600 hover:bg-danger-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.input-field {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-200;
+}
+
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-success {
+  @apply status-badge bg-success-100 text-success-800;
+}
+
+.status-error {
+  @apply status-badge bg-danger-100 text-danger-800;
+}
+
+.status-warning {
+  @apply status-badge bg-warning-100 text-warning-800;
+}
+
+.status-info {
+  @apply status-badge bg-primary-100 text-primary-800;
+}
+
+/* Scanner overlay styles */
+.qr-scanner-overlay {
+  position: relative;
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qr-scanner-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid rgba(59, 130, 246, 0.5);
+  border-radius: 8px;
+  animation: pulse 2s infinite;
+  pointer-events: none;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-lg;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-lg hover:bg-gray-400;
+}
+
+/* Offline indicator */
+.offline-indicator {
+  @apply fixed top-4 right-4 z-50 bg-warning-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse;
+}
