@@ -1,71 +1,122 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, CheckCircle, XCircle, Loader2, Eye, AlertTriangle } from 'lucide-react';
+import { Camera, Upload, CheckCircle, XCircle, AlertTriangle, ArrowLeft, FileText } from 'lucide-react';
+import { isDemoMode, simulateApiCall } from '../../config/demoConfig';
 
 function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
   const fileInputRef = useRef(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [ocrResult, setOcrResult] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [documentImage, setDocumentImage] = useState(null);
   const [verificationResult, setVerificationResult] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [documentType, setDocumentType] = useState('AADHAAR');
+  const [captureMode, setCaptureMode] = useState(false);
+  const [stream, setStream] = useState(null);
 
-  const handleFileSelect = (event) => {
+  const startCamera = async () => {
+    try {
+      setError(null);
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment', // Back camera for documents
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setCaptureMode(true);
+    } catch (err) {
+      console.error('Camera access error:', err);
+      setError('Unable to access camera. Please check permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setCaptureMode(false);
+  };
+
+  const captureDocument = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    if (!video || !canvas) return;
+
+    const context = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    setDocumentImage(imageData);
+    stopCamera();
+  };
+
+  const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file (JPG, PNG, etc.)');
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('File size must be less than 5MB');
-        return;
-      }
-
-      setSelectedFile(file);
-      setError(null);
-
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
-        setPreviewUrl(e.target.result);
+        setDocumentImage(e.target.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const processDocument = async () => {
-    if (!selectedFile) return;
+  const verifyDocument = async () => {
+    if (!documentImage) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('document', selectedFile);
-      formData.append('voterId', voterId);
-      formData.append('documentType', documentType);
+      if (isDemoMode()) {
+        // Simulate demo document verification
+        await simulateApiCall(null, 3000);
+        
+        // Random simulation results for demo
+        const isValid = Math.random() > 0.2; // 80% success rate
+        const confidence = isValid ? (0.90 + Math.random() * 0.09) : (0.3 + Math.random() * 0.4);
+        
+        const documentTypes = ['Aadhar Card', 'Voter ID', 'Passport', 'Driving License'];
+        const detectedType = documentTypes[Math.floor(Math.random() * documentTypes.length)];
+        
+        setVerificationResult({
+          valid: isValid,
+          confidence: confidence,
+          documentType: detectedType,
+          extractedData: isValid ? {
+            name: 'John Doe',
+            id: 'ABCD1234567890',
+            dateOfBirth: '1988-05-15',
+            address: '123 Demo Street, Demo City'
+          } : null,
+          message: isValid 
+            ? `${detectedType} verified successfully with ${(confidence * 100).toFixed(1)}% confidence`
+            : 'Document verification failed - invalid or unclear document'
+        });
 
-      // OCR Processing
-      const ocrResponse = await fetch('/api/verification/document-ocr', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: formData
-      });
-
-      const ocrData = await ocrResponse.json();
-
-      if (ocrData.success) {
-        setOcrResult(ocrData.data);
-
-        // Verify extracted data against voter record
-        const verifyResponse = await fetch('/api/verification/document-verify', {
+        if (isValid && confidence > 0.85) {
+          setTimeout(() => {
+            onVerificationComplete && onVerificationComplete({
+              method: 'DOCUMENT_VERIFICATION',
+              success: true,
+              confidence: confidence,
+              documentType: detectedType,
+              data: { documentImage }
+            });
+          }, 2000);
+        }
+      } else {
+        // Real API call for document verification
+        const response = await fetch('/api/verification/document-verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -73,62 +124,91 @@ function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
           },
           body: JSON.stringify({
             voterId,
-            documentType,
-            extractedData: ocrData.data,
-            documentHash: ocrData.documentHash
+            documentImage: documentImage,
+            timestamp: new Date().toISOString()
           })
         });
 
-        const verifyData = await verifyResponse.json();
+        const result = await response.json();
 
-        if (verifyData.success) {
-          setVerificationResult(verifyData.verification);
+        if (result.success) {
+          setVerificationResult({
+            valid: result.valid,
+            confidence: result.confidence,
+            documentType: result.documentType,
+            extractedData: result.extractedData,
+            message: result.message
+          });
 
-          if (verifyData.verification.isValid && verifyData.verification.matchScore > 0.8) {
+          if (result.valid && result.confidence > 0.85) {
             setTimeout(() => {
-              onVerificationComplete({
+              onVerificationComplete && onVerificationComplete({
                 method: 'DOCUMENT_VERIFICATION',
                 success: true,
-                documentType,
-                matchScore: verifyData.verification.matchScore,
-                extractedData: ocrData.data,
-                timestamp: new Date().toISOString()
+                confidence: result.confidence,
+                documentType: result.documentType,
+                data: result.data
               });
             }, 2000);
           }
         } else {
-          setError(verifyData.message || 'Document verification failed');
+          throw new Error(result.message || 'Document verification failed');
         }
-      } else {
-        setError(ocrData.message || 'OCR processing failed');
       }
-    } catch (err) {
-      setError('Network error during document processing');
-      console.error('Document verification error:', err);
+    } catch (error) {
+      console.error('Document verification error:', error);
+      setError(error.message || 'Failed to verify document');
     } finally {
       setLoading(false);
     }
   };
 
-  const retryProcess = () => {
-    setOcrResult(null);
+  const resetDocument = () => {
+    setDocumentImage(null);
     setVerificationResult(null);
     setError(null);
+    stopCamera();
   };
 
-  const getMatchScoreColor = (score) => {
-    if (score >= 0.9) return 'text-green-600';
-    if (score >= 0.7) return 'text-yellow-600';
+  const getConfidenceColor = (confidence) => {
+    if (confidence >= 0.9) return 'text-green-600';
+    if (confidence >= 0.7) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  const documentTypes = [
-    { value: 'AADHAAR', label: 'Aadhaar Card' },
-    { value: 'VOTER_ID', label: 'Voter ID Card' },
-    { value: 'PAN', label: 'PAN Card' },
-    { value: 'PASSPORT', label: 'Passport' },
-    { value: 'DRIVING_LICENSE', label: 'Driving License' }
-  ];
+  // Demo mode standalone component
+  if (isDemoMode() && !voterId && !onVerificationComplete) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center text-blue-600 hover:text-blue-700 mb-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </button>
+            <h1 className="text-3xl font-bold text-gray-900">Document Verification Demo</h1>
+            <p className="text-gray-600 mt-2">
+              Test our AI-powered document verification and OCR system
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <DocumentVerification 
+              voterId="demo-voter-001"
+              onVerificationComplete={(result) => {
+                console.log('Demo verification result:', result);
+                alert(`Demo document verification completed! Success: ${result.success}, Type: ${result.documentType}, Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+              }}
+              onCancel={() => window.history.back()}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
@@ -136,8 +216,13 @@ function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
         <FileText className="w-12 h-12 mx-auto text-blue-600 mb-4" />
         <h2 className="text-xl font-bold text-gray-900">Document Verification</h2>
         <p className="text-gray-600 mt-2">
-          Upload a clear photo of your identity document for verification
+          Upload or capture a photo of your identity document for verification
         </p>
+        {isDemoMode() && (
+          <div className="mt-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
+            Demo Mode - Simulated OCR & Verification
+          </div>
+        )}
       </div>
 
       {error && (
@@ -149,179 +234,149 @@ function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
         </div>
       )}
 
-      {/* Document Type Selection */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Document Type
-        </label>
-        <select
-          value={documentType}
-          onChange={(e) => setDocumentType(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          {documentTypes.map(type => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!documentImage && !captureMode && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+            >
+              <Upload className="w-12 h-12 text-gray-400 mb-4" />
+              <span className="text-lg font-medium text-gray-700">Upload Document</span>
+              <span className="text-sm text-gray-500 mt-1">Choose from gallery</span>
+            </button>
 
-      {/* File Upload Area */}
-      {!selectedFile ? (
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition-colors"
-        >
-          <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 mb-2">Click to upload document image</p>
-          <p className="text-sm text-gray-400">PNG, JPG up to 5MB</p>
+            <button
+              onClick={startCamera}
+              className="flex flex-col items-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+            >
+              <Camera className="w-12 h-12 text-gray-400 mb-4" />
+              <span className="text-lg font-medium text-gray-700">Capture Document</span>
+              <span className="text-sm text-gray-500 mt-1">Use camera</span>
+            </button>
+          </div>
+
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={handleFileSelect}
+            onChange={handleFileUpload}
             className="hidden"
           />
+
+          <div className="text-xs text-gray-500 text-center">
+            Supported documents: Aadhar Card, Voter ID, Passport, Driving License
+          </div>
         </div>
-      ) : (
+      )}
+
+      {captureMode && (
         <div className="space-y-4">
-          {/* Preview */}
+          <div className="relative">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full h-64 object-cover rounded-lg bg-gray-100"
+            />
+            <div className="absolute inset-0 border-2 border-blue-400 rounded-lg pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="w-80 h-48 border-2 border-blue-400 rounded-lg opacity-50"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={stopCamera}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={captureDocument}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Capture
+            </button>
+          </div>
+        </div>
+      )}
+
+      {documentImage && (
+        <div className="space-y-4">
           <div className="relative">
             <img
-              src={previewUrl}
-              alt="Document preview"
-              className="w-full max-h-64 object-contain rounded-lg border"
+              src={documentImage}
+              alt="Document"
+              className="w-full max-h-96 object-contain rounded-lg border"
             />
             {verificationResult && (
-              <div className="absolute top-2 right-2">
-                {verificationResult.isValid ? (
-                  <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Verified
-                  </div>
-                ) : (
-                  <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
-                    <XCircle className="w-3 h-3 mr-1" />
-                    Invalid
-                  </div>
-                )}
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                <div className="text-center text-white p-4 bg-black bg-opacity-70 rounded-lg max-w-sm">
+                  {verificationResult.valid ? (
+                    <CheckCircle className="w-16 h-16 mx-auto text-green-400 mb-2" />
+                  ) : (
+                    <XCircle className="w-16 h-16 mx-auto text-red-400 mb-2" />
+                  )}
+                  <p className="text-lg font-semibold mb-2">
+                    {verificationResult.valid ? 'Document Valid!' : 'Verification Failed'}
+                  </p>
+                  {verificationResult.documentType && (
+                    <p className="text-sm mb-1">Type: {verificationResult.documentType}</p>
+                  )}
+                  <p className={`text-sm ${getConfidenceColor(verificationResult.confidence)}`}>
+                    Confidence: {(verificationResult.confidence * 100).toFixed(1)}%
+                  </p>
+                  {verificationResult.extractedData && (
+                    <div className="mt-2 text-xs">
+                      <p>Name: {verificationResult.extractedData.name}</p>
+                      <p>ID: {verificationResult.extractedData.id}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
-          {/* OCR Results */}
-          {ocrResult && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-3 flex items-center">
-                <Eye className="w-4 h-4 mr-2" />
-                Extracted Information
-              </h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {Object.entries(ocrResult).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
-                    <span className="font-medium">{value || 'Not found'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Verification Results */}
-          {verificationResult && (
-            <div className={`rounded-lg p-4 ${verificationResult.isValid ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-              <h3 className="font-medium mb-3 flex items-center">
-                {verificationResult.isValid ? (
-                  <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                ) : (
-                  <XCircle className="w-4 h-4 mr-2 text-red-600" />
-                )}
-                Verification Result
-              </h3>
-              <div className="text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span>Match Score:</span>
-                  <span className={`font-medium ${getMatchScoreColor(verificationResult.matchScore)}`}>
-                    {(verificationResult.matchScore * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className={`font-medium ${verificationResult.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                    {verificationResult.isValid ? 'Valid' : 'Invalid'}
-                  </span>
-                </div>
-                {verificationResult.issues && verificationResult.issues.length > 0 && (
-                  <div className="mt-2">
-                    <span className="text-red-600 font-medium">Issues:</span>
-                    <ul className="list-disc list-inside text-red-600 ml-2">
-                      {verificationResult.issues.map((issue, index) => (
-                        <li key={index}>{issue}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <div className="flex space-x-3">
+            <button
+              onClick={resetDocument}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={verifyDocument}
+              disabled={loading}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Verify Document
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex space-x-3 mt-6">
+      <canvas ref={canvasRef} className="hidden" />
+
+      <div className="mt-6 flex justify-center">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
-
-        {selectedFile && !ocrResult && (
-          <button
-            onClick={processDocument}
-            disabled={loading}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4 mr-2" />
-            )}
-            Process Document
-          </button>
-        )}
-
-        {ocrResult && !verificationResult && (
-          <button
-            onClick={retryProcess}
-            className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center justify-center"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Retry
-          </button>
-        )}
-
-        {selectedFile && (
-          <button
-            onClick={() => {
-              setSelectedFile(null);
-              setPreviewUrl(null);
-              setOcrResult(null);
-              setVerificationResult(null);
-              setError(null);
-            }}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-          >
-            Choose Different File
-          </button>
-        )}
-      </div>
-
-      <div className="mt-4 text-xs text-gray-500 text-center space-y-1">
-        <p>• Ensure document is clearly visible and well-lit</p>
-        <p>• Avoid shadows or glare on the document</p>
-        <p>• Supported formats: JPG, PNG (max 5MB)</p>
       </div>
     </div>
   );

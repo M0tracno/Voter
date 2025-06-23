@@ -4,6 +4,7 @@ import { DatabaseService } from '../../services/DatabaseService';
 import { AuthService } from '../../services/AuthService';
 import { SyncService } from '../../services/SyncService';
 import ApiService from '../../services/ApiService';
+import { isDemoMode, getDemoData } from '../../config/demoConfig';
 import {
   CogIcon,
   ServerIcon,
@@ -39,9 +40,26 @@ const Settings = () => {
     loadBoothConfig();
     checkConnection();
   }, []);
-
   const loadSettings = async () => {
     try {
+      if (isDemoMode()) {
+        // Use demo settings
+        const demoSettings = getDemoData('settings');
+        setSettings({
+          serverUrl: 'https://demo.fastverify.com',
+          syncInterval: 300,
+          maxRetries: 3,
+          offlineMode: true,
+          debugMode: demoSettings.system.debugMode,
+          autoSync: demoSettings.system.autoBackupEnabled,
+          encryptionEnabled: true,
+          maxAuditLogs: 10000,
+          ...demoSettings.verification,
+          ...demoSettings.notifications
+        });
+        return;
+      }
+
       const savedSettings = await DatabaseService.getSettings();
       if (savedSettings) {
         setSettings({ ...settings, ...savedSettings });

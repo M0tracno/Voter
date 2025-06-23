@@ -8,9 +8,13 @@ import {
   Wifi, 
   WifiOff,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  FileText,
+  BarChart3
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { isDemoMode } from '../../config/demoConfig';
 
 function Layout() {
   const location = useLocation();
@@ -21,13 +25,21 @@ function Layout() {
     pendingSyncCount,
     isAuthenticated 
   } = useApp();
-
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Search', href: '/search', icon: Search },
     { name: 'Audit', href: '/audit', icon: Activity },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
+
+  // Add demo-specific navigation items
+  const demoNavigation = [
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Face Verification', href: '/face-verification', icon: Camera },
+    { name: 'Document Verification', href: '/document-verification', icon: FileText },
+  ];
+
+  const allNavigation = isDemoMode() ? [...navigation, ...demoNavigation] : navigation;
 
   const isActivePath = (path) => {
     return location.pathname === path;
@@ -124,10 +136,9 @@ function Layout() {
 
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Sidebar Navigation */}
-        <nav className="w-64 bg-white shadow-sm border-r border-gray-200">
-          <div className="p-4">
+        <nav className="w-64 bg-white shadow-sm border-r border-gray-200">          <div className="p-4">
             <ul className="space-y-2">
-              {navigation.map((item) => {
+              {allNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = isActivePath(item.href);
                 
@@ -145,6 +156,11 @@ function Layout() {
                         isActive ? 'text-blue-600' : 'text-gray-500'
                       }`} />
                       {item.name}
+                      {isDemoMode() && demoNavigation.includes(item) && (
+                        <span className="ml-auto text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                          Demo
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );

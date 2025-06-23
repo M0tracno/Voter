@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { DatabaseService } from '../../services/DatabaseService';
+import { isDemoMode, getDemoData, simulateApiCall } from '../../config/demoConfig';
 import { 
   DocumentTextIcon, 
   CalendarDaysIcon, 
@@ -39,13 +40,40 @@ const AuditLogs = () => {
   useEffect(() => {
     applyFilters();
   }, [logs, filters]);
-
   const loadAuditLogs = async () => {
     try {
       setLoading(true);
-      const auditLogs = await DatabaseService.getAuditLogs();
-      setLogs(auditLogs);
-      calculateStats(auditLogs);    } catch (error) {
+      
+      if (isDemoMode()) {
+        // Use demo audit logs
+        await simulateApiCall(null, 600);
+        const demoLogs = getDemoData('auditLogs');
+        
+        // Convert demo logs to match expected format
+        const formattedLogs = demoLogs.map(log => ({
+          log_id: log.id,
+          timestamp: log.timestamp,
+          action: log.action,
+          user_id: log.userId,
+          user_name: log.userName,
+          voter_id: log.voterId,
+          voter_name: log.voterName,
+          verification_result: log.status,
+          verification_method: log.action.includes('FACE') ? 'FACE' : 
+                               log.action.includes('DOCUMENT') ? 'DOCUMENT' : 'MANUAL',
+          details: log.details,
+          ip_address: log.ip,
+          booth_id: 'demo-booth-001'
+        }));
+        
+        setLogs(formattedLogs);
+        calculateStats(formattedLogs);
+      } else {
+        const auditLogs = await DatabaseService.getAuditLogs();
+        setLogs(auditLogs);
+        calculateStats(auditLogs);
+      }
+    } catch (error) {
       console.error('Failed to load audit logs:', error);
       actions.setError('Failed to load audit logs');
     } finally {

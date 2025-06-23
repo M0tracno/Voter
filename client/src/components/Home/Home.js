@@ -10,9 +10,12 @@ import {
   XCircle, 
   Clock,
   Users,
-  BarChart3
+  BarChart3,
+  Camera,
+  FileText
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { isDemoMode, getDemoData } from '../../config/demoConfig';
 
 function Home() {
   const navigate = useNavigate();
@@ -34,13 +37,23 @@ function Home() {
   });
 
   const [quickSearchQuery, setQuickSearchQuery] = useState('');
-
   useEffect(() => {
     loadTodayStats();
   }, [recentVerifications]);
 
   const loadTodayStats = async () => {
     try {
+      if (isDemoMode()) {
+        // Use demo analytics data
+        const demoAnalytics = getDemoData('analytics');
+        setTodayStats({
+          total: demoAnalytics.todayVerifications,
+          successful: Math.floor(demoAnalytics.todayVerifications * 0.8),
+          failed: Math.floor(demoAnalytics.todayVerifications * 0.2)
+        });
+        return;
+      }
+
       // Calculate today's stats from recent verifications
       const today = new Date().toISOString().split('T')[0];
       const todayLogs = recentVerifications.filter(log => 
@@ -210,9 +223,7 @@ function Home() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Action Buttons */}
+        </div>        {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Link
             to="/search"
@@ -239,6 +250,38 @@ function Home() {
               <p className="text-sm text-gray-500">View verification history</p>
             </div>
           </Link>
+
+          {/* Demo Mode: Add Face Verification */}
+          {isDemoMode() && (
+            <Link
+              to="/face-verification"
+              className="bg-white border border-orange-200 rounded-lg p-6 hover:bg-orange-50 transition-colors group"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="p-3 bg-orange-100 rounded-full mb-3 group-hover:bg-orange-200 transition-colors">
+                  <Camera className="w-6 h-6 text-orange-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Face Verification</h3>
+                <p className="text-sm text-gray-500">Test face recognition</p>
+              </div>
+            </Link>
+          )}
+
+          {/* Demo Mode: Add Document Verification */}
+          {isDemoMode() && (
+            <Link
+              to="/document-verification"
+              className="bg-white border border-purple-200 rounded-lg p-6 hover:bg-purple-50 transition-colors group"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="p-3 bg-purple-100 rounded-full mb-3 group-hover:bg-purple-200 transition-colors">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1">Document Verification</h3>
+                <p className="text-sm text-gray-500">Test document scanning</p>
+              </div>
+            </Link>
+          )}
 
           <button
             onClick={handleSyncClick}

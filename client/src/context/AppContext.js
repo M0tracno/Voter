@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { SyncService } from '../services/SyncService';
 import { DatabaseService } from '../services/DatabaseService';
+import { isDemoMode } from '../config/demoConfig';
 
 // Initial state
 const initialState = {
@@ -169,7 +170,8 @@ export function AppProvider({ children, initialConfig = {} }) {
   useEffect(() => {
     let syncInterval;
     
-    if (state.isOnline && state.authToken) {
+    // Skip sync setup in demo mode
+    if (!isDemoMode() && state.isOnline && state.authToken) {
       // Initial sync
       handleSync();
       
@@ -182,6 +184,7 @@ export function AppProvider({ children, initialConfig = {} }) {
         clearInterval(syncInterval);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isOnline, state.authToken]);
 
   // Update statistics periodically
@@ -222,9 +225,14 @@ export function AppProvider({ children, initialConfig = {} }) {
     
     resetVerification: () => dispatch({ type: ActionTypes.RESET_VERIFICATION })
   };
-
   // Helper functions
   const handleSync = async () => {
+    // Skip sync in demo mode
+    if (isDemoMode()) {
+      console.log('Demo mode: Skipping sync');
+      return;
+    }
+
     if (!state.isOnline || !state.authToken || state.syncStatus.isSyncing) {
       return;
     }

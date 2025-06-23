@@ -11,6 +11,10 @@ import VoterVerification from './components/Verification/VoterVerification';
 import AuditLogs from './components/AuditLogs/AuditLogs';
 import Settings from './components/Settings/Settings';
 import Setup from './components/Setup/Setup';
+import DemoBanner from './components/Demo/DemoBanner';
+import FaceVerification from './components/FaceVerification/FaceVerification';
+import DocumentVerification from './components/DocumentVerification/DocumentVerification';
+import AnalyticsDashboard from './components/Analytics/AnalyticsDashboard';
 
 // Services
 import { DatabaseService } from './services/DatabaseService';
@@ -18,6 +22,9 @@ import { AuthService } from './services/AuthService';
 
 // Context
 import { AppProvider } from './context/AppContext';
+
+// Demo Mode
+import { isDemoMode, getDemoData } from './config/demoConfig';
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -37,10 +44,18 @@ function App() {
       window.removeEventListener('online', () => setIsOnline(true));
       window.removeEventListener('offline', () => setIsOnline(false));
     };
-  }, []);
-  const initializeApp = async () => {
+  }, []);  const initializeApp = async () => {
     try {
       console.log('Starting app initialization...');
+      
+      // Check if demo mode is enabled
+      if (isDemoMode()) {
+        console.log('Demo mode enabled - using demo data');
+        setBoothConfig(getDemoData('booth'));
+        setAuthToken('demo-token');
+        setIsInitialized(true);
+        return;
+      }
       
       // Initialize local database
       await DatabaseService.initialize();
@@ -93,11 +108,13 @@ function App() {
         </Router>
       </AppProvider>
     );
-  }
-  return (
+  }  return (
     <AppProvider initialConfig={{ boothConfig, authToken, isOnline }}>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="min-h-screen bg-gray-50">
+          {/* Demo Mode Banner */}
+          <DemoBanner />
+          
           {/* Offline Indicator */}
           {!isOnline && (
             <div className="bg-yellow-500 text-white text-center py-2 px-4">
@@ -112,6 +129,9 @@ function App() {
               <Route path="/verify/:voterId" element={<VoterVerification />} />
               <Route path="/audit" element={<AuditLogs />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/face-verification" element={<FaceVerification />} />
+              <Route path="/document-verification" element={<DocumentVerification />} />
+              <Route path="/analytics" element={<AnalyticsDashboard />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Layout>

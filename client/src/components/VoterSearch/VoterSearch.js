@@ -10,6 +10,7 @@ import {
   QrCode
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { isDemoMode, getDemoData, simulateApiCall } from '../../config/demoConfig';
 import QRScanner from './QRScanner';
 
 function VoterSearch() {
@@ -30,7 +31,6 @@ function VoterSearch() {
       handleSearch(initialQuery.trim());
     }
   }, []);
-
   const handleSearch = async (query = searchQuery) => {
     if (!query.trim()) return;
 
@@ -38,8 +38,35 @@ function VoterSearch() {
     clearError();
 
     try {
-      const results = await searchVoter(query.trim(), searchType);
-      setSearchResults(results);
+      if (isDemoMode()) {
+        // Use demo voter data
+        const demoVoters = getDemoData('voters');
+        await simulateApiCall(null, 800); // Simulate API delay
+        
+        const results = demoVoters.filter(voter => {
+          const searchTerm = query.toLowerCase();
+          if (searchType === 'id') {
+            return voter.voterId.toLowerCase().includes(searchTerm);
+          } else {
+            return voter.name.toLowerCase().includes(searchTerm) ||
+                   voter.fatherName.toLowerCase().includes(searchTerm);
+          }
+        });
+        
+        setSearchResults(results.map(voter => ({
+          ...voter,
+          voter_id: voter.voterId,
+          voter_name: voter.name,
+          father_name: voter.fatherName,
+          is_active: true,
+          phone: voter.documents?.phone || 'Not available',
+          constituency: voter.constituency,
+          polling_station: voter.pollingStation
+        })));
+      } else {
+        const results = await searchVoter(query.trim(), searchType);
+        setSearchResults(results);
+      }
     } catch (error) {
       console.error('Search failed:', error);
       setSearchResults([]);
