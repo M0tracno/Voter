@@ -119,3 +119,6 @@ Icon?
 
 # Local database
 fastverify.db
+
+# Local Netlify folder
+.netlify
