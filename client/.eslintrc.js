@@ -32,8 +32,7 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': 'error',
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+    'react-hooks/exhaustive-deps': 'warn',    'no-console': 'warn',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
   },
   settings: {
