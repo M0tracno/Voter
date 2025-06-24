@@ -3,12 +3,9 @@ import { ArrowLeft, Users, CheckCircle, XCircle, AlertTriangle, TrendingUp, Acti
 import { isDemoMode, getDemoData, simulateApiCall } from '../../config/demoConfig';
 
 function AnalyticsDashboard() {
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState(null);  const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('today');
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeRange, loadAnalytics]);
+
   const loadAnalytics = useCallback(async () => {
     setLoading(true);
     try {
@@ -30,8 +27,11 @@ function AnalyticsDashboard() {
       // Failed to load analytics
     } finally {
       setLoading(false);
-    }
-  }, [timeRange]);
+    }  }, [timeRange]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [timeRange, loadAnalytics]);
 
   if (loading) {
     return (
@@ -102,10 +102,9 @@ function AnalyticsDashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between">              <div>
                 <p className="text-sm font-medium text-gray-600">Total Voters</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.totalVoters.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{(analytics?.totalVoters || 0).toLocaleString()}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -114,10 +113,9 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between">              <div>
                 <p className="text-sm font-medium text-gray-600">Verified Voters</p>
-                <p className="text-2xl font-bold text-green-600">{analytics.verifiedVoters.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">{(analytics?.verifiedVoters || analytics?.successfulVerifications || 0).toLocaleString()}</p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -126,10 +124,9 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between">              <div>
                 <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">{analytics.pendingVerifications.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-yellow-600">{(analytics?.pendingVerifications || 0).toLocaleString()}</p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-full">
                 <Activity className="w-6 h-6 text-yellow-600" />
@@ -138,10 +135,9 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between">              <div>
                 <p className="text-sm font-medium text-gray-600">Today&apos;s Verifications</p>
-                <p className="text-2xl font-bold text-blue-600">{analytics.todayVerifications}</p>
+                <p className="text-2xl font-bold text-blue-600">{analytics?.todayVerifications || 0}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -154,16 +150,15 @@ function AnalyticsDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Hourly Verification Stats */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Hourly Verification Activity</h3>
-            <div className="space-y-3">
-              {analytics.hourlyStats.map((stat, index) => (
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Hourly Verification Activity</h3>            <div className="space-y-3">
+              {(analytics?.hourlyStats || []).map((stat, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 w-16">{stat.hour}</span>
                   <div className="flex-1 mx-4">
                     <div className="bg-gray-200 rounded-full h-4">
                       <div 
                         className="bg-blue-600 h-4 rounded-full transition-all duration-300"
-                        style={{ width: `${(stat.verifications / Math.max(...analytics.hourlyStats.map(s => s.verifications))) * 100}%` }}
+                        style={{ width: `${(stat.verifications / Math.max(...(analytics?.hourlyStats || []).map(s => s.verifications))) * 100}%` }}
                       ></div>
                     </div>
                   </div>
@@ -176,27 +171,26 @@ function AnalyticsDashboard() {
           {/* Verification Types Distribution */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Verification Methods</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4">              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-blue-600 rounded mr-3"></div>
                   <span className="text-sm text-gray-600">Manual</span>
                 </div>
-                <span className="text-sm font-medium">{analytics.verificationTypes.manual}%</span>
+                <span className="text-sm font-medium">{analytics?.verificationTypes?.manual || 0}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-green-600 rounded mr-3"></div>
                   <span className="text-sm text-gray-600">Face Recognition</span>
                 </div>
-                <span className="text-sm font-medium">{analytics.verificationTypes.face}%</span>
+                <span className="text-sm font-medium">{analytics?.verificationTypes?.face || 0}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-yellow-600 rounded mr-3"></div>
                   <span className="text-sm text-gray-600">Document</span>
                 </div>
-                <span className="text-sm font-medium">{analytics.verificationTypes.document}%</span>
+                <span className="text-sm font-medium">{analytics?.verificationTypes?.document || 0}%</span>
               </div>
             </div>
           </div>
@@ -205,34 +199,32 @@ function AnalyticsDashboard() {
         {/* Fraud Detection Stats */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Fraud Detection Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-red-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">            <div className="text-center p-4 bg-red-50 rounded-lg">
               <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-red-600">{analytics.fraudDetection.flagged}</p>
+              <p className="text-2xl font-bold text-red-600">{analytics?.fraudDetection?.flagged || 0}</p>
               <p className="text-sm text-gray-600">Cases Flagged</p>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-green-600">{analytics.fraudDetection.resolved}</p>
+              <p className="text-2xl font-bold text-green-600">{analytics?.fraudDetection?.resolved || 0}</p>
               <p className="text-sm text-gray-600">Cases Resolved</p>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <AlertTriangle className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-yellow-600">{analytics.fraudDetection.pending}</p>
+              <p className="text-2xl font-bold text-yellow-600">{analytics?.fraudDetection?.pending || 0}</p>
               <p className="text-sm text-gray-600">Cases Pending</p>
             </div>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
             <h4 className="text-lg font-semibold mb-2">Success Rate</h4>
             <p className="text-3xl font-bold">
-              {((analytics.verifiedVoters / analytics.totalVoters) * 100).toFixed(1)}%
+              {analytics?.totalVoters ? (((analytics?.verifiedVoters || analytics?.successfulVerifications || 0) / analytics.totalVoters) * 100).toFixed(1) : '0.0'}%
             </p>
             <p className="text-blue-100 text-sm mt-1">
-              {analytics.verifiedVoters} of {analytics.totalVoters} voters verified
+              {analytics?.verifiedVoters || analytics?.successfulVerifications || 0} of {analytics?.totalVoters || 0} voters verified
             </p>
           </div>
 

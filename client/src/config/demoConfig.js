@@ -17,15 +17,41 @@ export const DEMO_CONFIG = {
   verificationInterval: 8000, // New verification every 8 seconds
   statsUpdateInterval: 3000,  // Update stats every 3 seconds
   notificationInterval: 15000, // Show notifications every 15 seconds
-  
-  // Demo analytics data
+    // Demo analytics data
   demoAnalytics: {
     todayVerifications: 438,
     successfulVerifications: 392,
     failedVerifications: 46,
     averageTime: 8.2, // seconds
     activeUsers: 5,
-    systemLoad: 65 // percent
+    systemLoad: 65, // percent
+    totalVoters: 1250,
+    verifiedVoters: 892,
+    pendingVerifications: 23,
+    hourlyStats: [
+      { hour: '06:00', verifications: 12 },
+      { hour: '07:00', verifications: 23 },
+      { hour: '08:00', verifications: 45 },
+      { hour: '09:00', verifications: 67 },
+      { hour: '10:00', verifications: 89 },
+      { hour: '11:00', verifications: 76 },
+      { hour: '12:00', verifications: 54 },
+      { hour: '13:00', verifications: 43 },
+      { hour: '14:00', verifications: 65 },
+      { hour: '15:00', verifications: 78 },
+      { hour: '16:00', verifications: 82 },
+      { hour: '17:00', verifications: 34 }
+    ],
+    verificationTypes: {
+      manual: 35,
+      face: 40,
+      document: 25
+    },
+    fraudDetection: {
+      flagged: 12,
+      resolved: 8,
+      pending: 4
+    }
   },
   
   // Important: Define demo sessions explicitly so they're available 

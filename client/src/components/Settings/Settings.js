@@ -33,14 +33,8 @@ const Settings = () => {  const {
   });
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [boothConfig, setBoothConfig] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);  const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  useEffect(() => {
-    loadSettings();
-    loadBoothConfig();
-    checkConnection();
-  }, [loadSettings]);
 
   const loadSettings = useCallback(async () => {
     try {
@@ -84,11 +78,16 @@ const Settings = () => {  const {
     try {
       setConnectionStatus('checking');
       const isReachable = await SyncService.canSync();
-      setConnectionStatus(isReachable ? 'connected' : 'disconnected');
-    } catch (error) {
+      setConnectionStatus(isReachable ? 'connected' : 'disconnected');    } catch (error) {
       setConnectionStatus('disconnected');
     }
   };
+
+  useEffect(() => {
+    loadSettings();
+    loadBoothConfig();
+    checkConnection();
+  }, [loadSettings]);
 
   const saveSettings = async () => {
     try {

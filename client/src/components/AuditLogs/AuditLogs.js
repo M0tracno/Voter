@@ -29,16 +29,8 @@ const AuditLogs = () => {
   const [stats, setStats] = useState({
     total: 0,
     successful: 0,
-    failed: 0,
-    pending: 0
+    failed: 0,    pending: 0
   });
-  useEffect(() => {
-    loadAuditLogs();
-  }, [loadAuditLogs]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters, logs, filters]);
 
   const loadAuditLogs = useCallback(async () => {
     try {
@@ -133,10 +125,16 @@ const AuditLogs = () => {
         log.failure_reason?.toLowerCase().includes(term) ||
         log.operator_id?.toLowerCase().includes(term)
       );
-    }
-
-    setFilteredLogs(filtered);
+    }    setFilteredLogs(filtered);
   }, [logs, filters]);
+
+  useEffect(() => {
+    loadAuditLogs();
+  }, [loadAuditLogs]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters, logs, filters]);
 
   const exportToCSV = () => {
     try {

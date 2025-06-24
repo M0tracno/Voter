@@ -20,16 +20,8 @@ function VoterSearch() {
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [searchType, setSearchType] = useState('id');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);  const [isSearching, setIsSearching] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
-  useEffect(() => {
-    // Auto-search if query from URL
-    const initialQuery = searchParams.get('q');
-    if (initialQuery && initialQuery.trim()) {
-      handleSearch(initialQuery.trim());
-    }
-  }, [handleSearch, searchParams]);
 
   const handleSearch = useCallback(async (query = searchQuery) => {
     if (!query.trim()) return;
@@ -71,8 +63,15 @@ function VoterSearch() {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
+    }  }, [searchQuery, searchType, searchVoter]);
+
+  useEffect(() => {
+    // Auto-search if query from URL
+    const initialQuery = searchParams.get('q');
+    if (initialQuery && initialQuery.trim()) {
+      handleSearch(initialQuery.trim());
     }
-  }, [searchQuery, searchType, searchVoter]);
+  }, [handleSearch, searchParams]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
