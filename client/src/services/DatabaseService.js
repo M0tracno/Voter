@@ -21,36 +21,24 @@ const db = new FastVerifyDB();
 
 // Database service class
 export class DatabaseService {  static async initialize() {
-    try {
-      // Console statement removed
-      
-      await db.open();
-      // Console statement removed
-      
+    // Console statement removed
+    
+    await db.open();
+    // Console statement removed
       // Set default configuration if not exists
-      try {
-        const hasConfig = await db.config.where('key').equals('initialized').first();
-        if (!hasConfig) {
-          await db.config.add({
-            key: 'initialized',
-            value: JSON.stringify({
-              version: '2.0.0',
-              created_at: new Date().toISOString()
-            })
-          });
-          // Console statement removed
-        }
-      } catch (configError) {
-        // Console statement removed
-        // Continue anyway, this is not critical
-      }
-      
-      return true;
-    } catch (error) {
+    const hasConfig = await db.config.where('key').equals('initialized').first();
+    if (!hasConfig) {
+      await db.config.add({
+        key: 'initialized',
+        value: JSON.stringify({
+          version: '2.0.0',
+          created_at: new Date().toISOString()
+        })
+      });
       // Console statement removed
-      // Console statement removed
-      throw error;
     }
+    
+    return true;
   }
   static async clearDatabase() {
     try {
@@ -74,15 +62,11 @@ export class DatabaseService {  static async initialize() {
 
   // Configuration management
   static async setBoothConfig(config) {
-    try {
-      await db.config.put({
+    await db.config.put({
         key: 'booth_config',
         value: JSON.stringify(config)
       });
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   static async getBoothConfig() {
@@ -119,13 +103,9 @@ export class DatabaseService {  static async initialize() {
 
   // Voter management
   static async addVoters(voters) {
-    try {
-      await db.voters.bulkPut(voters);
+    await db.voters.bulkPut(voters);
       return voters.length;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   static async updateVoters(voters) {
@@ -196,8 +176,7 @@ export class DatabaseService {  static async initialize() {
 
   // Audit log management
   static async addAuditLog(logData) {
-    try {
-      // Generate HMAC signature
+    // Generate HMAC signature
       const hmacData = `${logData.voter_id}|${logData.timestamp}|${logData.verification_method}|${logData.verification_result}|${logData.booth_id}`;
       const hmacSecret = await this.getHMACSecret();
       const hmacSignature = CryptoJS.HmacSHA256(hmacData, hmacSecret).toString();
@@ -211,10 +190,7 @@ export class DatabaseService {  static async initialize() {
 
       const id = await db.auditLogs.add(auditLog);
       return { ...auditLog, id };
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   static async getPendingAuditLogs(limit = 1000) {
@@ -229,15 +205,11 @@ export class DatabaseService {  static async initialize() {
     }
   }
   static async markLogsAsSynced(logIds) {
-    try {
-      await db.auditLogs
+    await db.auditLogs
         .where('id')
         .anyOf(logIds)
         .modify({ is_synced: 1, synced_at: new Date().toISOString() });
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
   static async getPendingLogsCount() {
     try {
@@ -317,15 +289,11 @@ export class DatabaseService {  static async initialize() {
 
   // OTP verification management
   static async addOTPVerification(verificationData) {
-    try {
-      return await db.otpVerifications.add({
+    return await db.otpVerifications.add({
         ...verificationData,
         created_at: new Date().toISOString()
       });
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   static async getOTPVerification(verificationId) {
@@ -341,15 +309,11 @@ export class DatabaseService {  static async initialize() {
   }
 
   static async updateOTPVerification(verificationId, updates) {
-    try {
-      await db.otpVerifications
+    await db.otpVerifications
         .where('verification_id')
         .equals(verificationId)
         .modify(updates);
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   // Security helpers
@@ -377,8 +341,7 @@ export class DatabaseService {  static async initialize() {
 
   // Export/Import functionality
   static async exportAuditLogs(filters = {}) {
-    try {
-      const logs = await this.getAuditLogs(filters, 10000); // Export up to 10k logs
+    const logs = await this.getAuditLogs(filters, 10000); // Export up to 10k logs
       
       // Convert to CSV format
       const headers = [
@@ -409,10 +372,7 @@ export class DatabaseService {  static async initialize() {
       ].join('\n');
 
       return csvContent;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   // Cleanup old data
@@ -470,18 +430,14 @@ export class DatabaseService {  static async initialize() {
 
   // Settings management
   static async saveSettings(settings) {
-    try {
-      const settingsData = {
+    const settingsData = {
         key: 'app_settings',
         value: JSON.stringify(settings)
       };
       
       await db.config.put(settingsData);
       return true;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   static async getSettings() {
@@ -496,8 +452,7 @@ export class DatabaseService {  static async initialize() {
 
   // Cache management
   static async clearCache() {
-    try {
-      // Clear voters cache but keep audit logs
+    // Clear voters cache but keep audit logs
       await db.voters.clear();
       await db.otpVerifications.clear();
       
@@ -506,40 +461,31 @@ export class DatabaseService {  static async initialize() {
       await db.syncStatus.where('key').equals('otp_last_sync').delete();
       
       return true;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 
   // Clear old audit logs
   static async clearOldAuditLogs(cutoffDate) {
-    try {
-      const count = await db.auditLogs
+    const count = await db.auditLogs
         .where('timestamp')
         .below(cutoffDate)
         .delete();
       
       return count;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
   // Mark audit logs as synced
   static async markAuditLogsSynced(logIds) {
-    try {
-      await db.auditLogs
+    await db.auditLogs
         .where('id')
         .anyOf(logIds)
         .modify({ is_synced: 1, synced_at: new Date().toISOString() });
       
       return true;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    
   }
 }
 
 export default DatabaseService;
+
+

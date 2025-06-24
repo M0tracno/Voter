@@ -149,65 +149,54 @@ const Setup = ({ onSetupComplete }) => {
       return false;
     }
   };  const registerBooth = async () => {
-    try {
-      const response = await ApiService.post('/auth/setup', {
+    const response = await ApiService.post('/auth/setup', {
+      booth_id: setupData.boothId,
+      operator_name: setupData.operatorName,
+      operator_id: setupData.operatorId,
+      username: setupData.username,
+      email: setupData.email,
+      password: setupData.password,
+      location: setupData.location
+    });
+
+    if (response.token) {
+      // Store the authentication token
+      AuthService.setToken(response.token);
+      
+      // Store booth configuration
+      const boothConfig = {
         booth_id: setupData.boothId,
         operator_name: setupData.operatorName,
         operator_id: setupData.operatorId,
-        username: setupData.username,
-        email: setupData.email,
-        password: setupData.password,
-        location: setupData.location
-      });
-
-      if (response.token) {
-        // Store the authentication token
-        AuthService.setToken(response.token);
-        
-        // Store booth configuration
-        const boothConfig = {
-          booth_id: setupData.boothId,
-          operator_name: setupData.operatorName,
-          operator_id: setupData.operatorId,
-          location: setupData.location,
-          role: response.role || 'operator'
-        };
-        AuthService.setBoothConfig(boothConfig);
-
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
-  };
-
-  const initializeDatabase = async () => {
-    try {
-      // Initialize local database
-      await DatabaseService.initialize();
-      
-      // Set initial settings
-      const initialSettings = {
-        serverUrl: setupData.serverUrl,
-        syncInterval: 300,
-        maxRetries: 3,
-        offlineMode: false,
-        debugMode: false,
-        autoSync: true,
-        encryptionEnabled: true,
-        maxAuditLogs: 10000
+        location: setupData.location,
+        role: response.role || 'operator'
       };
-      
-      await DatabaseService.saveSettings(initialSettings);
-      
+      AuthService.setBoothConfig(boothConfig);
+
       return true;
-    } catch (error) {
-      // Console statement removed
-      throw error;
     }
+    
+    return false;
+  };
+  const initializeDatabase = async () => {
+    // Initialize local database
+    await DatabaseService.initialize();
+    
+    // Set initial settings
+    const initialSettings = {
+      serverUrl: setupData.serverUrl,
+      syncInterval: 300,
+      maxRetries: 3,
+      offlineMode: false,
+      debugMode: false,
+      autoSync: true,
+      encryptionEnabled: true,
+      maxAuditLogs: 10000
+    };
+    
+    await DatabaseService.saveSettings(initialSettings);
+    
+    return true;
   };
 
   const handleNext = async () => {

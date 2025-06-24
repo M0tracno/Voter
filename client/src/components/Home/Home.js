@@ -42,15 +42,12 @@ function Home() {
 
   const [quickSearchQuery, setQuickSearchQuery] = useState('');
   const [animateStats, setAnimateStats] = useState(false);
-
   // Trigger animation when stats change
   useEffect(() => {
     setAnimateStats(true);
     const timer = setTimeout(() => setAnimateStats(false), 500);
     return () => clearTimeout(timer);
-  }, [todayStats]);  useEffect(() => {
-    loadTodayStats();
-  }, [loadTodayStats, recentVerifications]);
+  }, [todayStats]);
 
   const loadTodayStats = useCallback(async () => {
     try {
@@ -80,6 +77,10 @@ function Home() {
       // Failed to load today stats
     }
   }, [recentVerifications]);
+
+  useEffect(() => {
+    loadTodayStats();
+  }, [loadTodayStats]);
 
   const handleQuickSearch = (e) => {
     e.preventDefault();

@@ -66,12 +66,12 @@ function QRScanner({ onScan, onClose }) {  const scannerRef = useRef(null);
     const file = event.target.files[0];
     if (file) {
       if (scanner) {
-        scanner.scanFile(file, true)
-          .then(decodedText => {
+        scanner.scanFile(file, true)          .then(decodedText => {
             // Console statement removed
             onScan(decodedText);
             cleanup();
-          })          .catch(() => {
+          })
+          .catch(() => {
             // Console statement removed
             setError('Could not read QR code from image. Please try again.');
           });

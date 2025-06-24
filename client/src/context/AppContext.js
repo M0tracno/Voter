@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
 import { SyncService } from '../services/SyncService';
 import { DatabaseService } from '../services/DatabaseService';
 import { isDemoMode, getDemoData, startLiveDemo, stopLiveDemo, generateDemoNotification, generateLiveStats } from '../config/demoConfig';
@@ -323,9 +323,22 @@ export function AppProvider({ children, initialConfig = {} }) {
       if (syncInterval) {
         clearInterval(syncInterval);
       }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    };    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isOnline, state.authToken]);
+
+  // Define updateStats before it's used in useEffect
+  const updateStats = useCallback(async () => {
+    try {
+      const stats = await DatabaseService.getTodayStats();
+      actions.updateStats(stats);
+      
+      const pendingCount = await DatabaseService.getPendingLogsCount();
+      actions.updateSyncStatus({ pendingLogs: pendingCount });
+    } catch (error) {
+      // Console statement removed
+    }
+  }, [actions]);
+
   // Update statistics periodically
   useEffect(() => {
     if (!isDemoMode()) {
@@ -384,20 +397,7 @@ export function AppProvider({ children, initialConfig = {} }) {
       actions.updateSyncStatus({
         isSyncing: false,
         syncError: error.message
-      });
-    }
-  };
-
-  const updateStats = async () => {
-    try {
-      const stats = await DatabaseService.getTodayStats();
-      actions.updateStats(stats);
-      
-      const pendingCount = await DatabaseService.getPendingLogsCount();
-      actions.updateSyncStatus({ pendingLogs: pendingCount });
-    } catch (error) {
-      // Console statement removed
-    }
+      });    }
   };
 
   // Enhanced actions

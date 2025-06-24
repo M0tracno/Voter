@@ -33,21 +33,13 @@ export class SyncService {
   }
 
   static async getVoterUpdates(boothId, since = null) {
-    try {
-      return await ApiService.getVoterUpdates(boothId, since);
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    return await ApiService.getVoterUpdates(boothId, since);
+    
   }
 
   static async getSyncStatus(boothId) {
-    try {
-      return await ApiService.getSyncStatus(boothId);
-    } catch (error) {
-      // Console statement removed
-      throw error;
-    }
+    return await ApiService.getSyncStatus(boothId);
+    
   }
 
   static async performFullSync(boothId, pendingLogs = [], lastSyncTime = null) {
@@ -133,3 +125,4 @@ export class SyncService {
 }
 
 export default SyncService;
+

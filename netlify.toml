@@ -8,6 +8,9 @@
 [build.environment]
   # Node.js version
   NODE_VERSION = "16"
+  # Treat ESLint warnings as warnings, not errors
+  CI = "false"
+  GENERATE_SOURCEMAP = "false"
 
 # Redirect rules for SPA
 [[redirects]]

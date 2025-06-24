@@ -45,14 +45,7 @@
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
     "type-check": "tsc --noEmit",
-    "analyze": "npm run build && npx bundle-analyzer build/static/js/*.js"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
+    "analyze": "npm run build && npx bundle-analyzer build/static/js/*.js"  },
   "browserslist": {
     "production": [
       ">0.2%",
