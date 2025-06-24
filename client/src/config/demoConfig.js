@@ -84,19 +84,7 @@ export const DEMO_CONFIG = {
       verification_method: 'QR Code Scan',
       status: 'ACTIVE',
       location: 'Main Hall H'
-    }
-  ],
-  
-  // Enhanced demo features
-  realTimeUpdates: true,
-  animatedStats: true,
-  simulatedTraffic: true,
-  dynamicNotifications: true,
-  
-  // Live demo intervals (in milliseconds)
-  verificationInterval: 8000, // New verification every 8 seconds
-  statsUpdateInterval: 3000,  // Update stats every 3 seconds
-  notificationInterval: 15000, // Show notifications every 15 seconds
+    }  ]
   
   // Demo user credentials
   demoUser: {
