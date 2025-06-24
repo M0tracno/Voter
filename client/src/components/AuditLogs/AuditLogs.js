@@ -43,27 +43,29 @@ const AuditLogs = () => {
   const loadAuditLogs = async () => {
     try {
       setLoading(true);
-      
-      if (isDemoMode()) {
+        if (isDemoMode()) {
         // Use demo audit logs
         await simulateApiCall(null, 600);
         const demoLogs = getDemoData('auditLogs');
         
+        console.log('AuditLogs component - demoLogs:', demoLogs?.length);
+        
         // Convert demo logs to match expected format
         const formattedLogs = demoLogs.map(log => ({
-          log_id: log.id,
+          log_id: log.log_id || log.id,
           timestamp: log.timestamp,
-          action: log.action,
-          user_id: log.userId,
-          user_name: log.userName,
-          voter_id: log.voterId,
-          voter_name: log.voterName,
-          verification_result: log.status,
-          verification_method: log.action.includes('FACE') ? 'FACE' : 
-                               log.action.includes('DOCUMENT') ? 'DOCUMENT' : 'MANUAL',
+          action: log.verification_method || log.action,
+          user_id: log.user_id || log.userId,
+          user_name: log.user_name || log.userName,
+          voter_id: log.voter_id || log.voterId,
+          voter_name: log.voter_name || log.voterName,
+          verification_result: log.verification_result || log.status || 'SUCCESS',
+          verification_method: log.verification_method || 
+                              (log.action && log.action.includes('FACE') ? 'FACE' : 
+                              (log.action && log.action.includes('DOCUMENT') ? 'DOCUMENT' : 'MANUAL')),
           details: log.details,
-          ip_address: log.ip,
-          booth_id: 'demo-booth-001'
+          ip_address: log.ip_address || log.ip,
+          booth_id: log.booth_id || 'demo-booth-001'
         }));
         
         setLogs(formattedLogs);
@@ -80,13 +82,21 @@ const AuditLogs = () => {
       setLoading(false);
     }
   };
-
   const calculateStats = (logData) => {
     const stats = {
       total: logData.length,
-      successful: logData.filter(log => log.verification_result === 'success').length,
-      failed: logData.filter(log => log.verification_result === 'failed').length,
-      pending: logData.filter(log => log.verification_result === 'pending').length
+      successful: logData.filter(log => 
+        log.verification_result?.toLowerCase() === 'success' || 
+        log.verification_result === 'SUCCESS'
+      ).length,
+      failed: logData.filter(log => 
+        log.verification_result?.toLowerCase() === 'failed' || 
+        log.verification_result === 'FAILED'
+      ).length,
+      pending: logData.filter(log => 
+        log.verification_result?.toLowerCase() === 'pending' || 
+        log.verification_result === 'PENDING'
+      ).length
     };
     setStats(stats);
   };

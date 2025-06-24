@@ -13,7 +13,7 @@ import {
   WifiIcon
 } from '@heroicons/react/24/outline';
 
-const Setup = () => {
+const Setup = ({ onSetupComplete }) => {
   const { actions } = useApp();
   const [currentStep, setCurrentStep] = useState(1);  const [setupData, setSetupData] = useState({
     serverUrl: 'http://localhost:3001',
@@ -226,26 +226,45 @@ const Setup = () => {
             setLoading(false);
             return;
           }
-          break;
-        }case 2:
+          break;        }
+        
+        case 2: {
           // Save booth configuration (without authentication yet)
           break;
+        }
 
-        case 3:
+        case 3: {
           // Authenticate and register booth with credentials
           await registerBooth();
           break;
-
-        case 4:
+        }case 4: {
           // Initialize system
           await initializeDatabase();
           
-          // Update app state
-          actions.setAuth(true);
+          // Create the config and token for the callback
+          const boothConfig = {
+            id: setupData.boothId,
+            name: setupData.operatorName,
+            location: setupData.location,
+            serverUrl: setupData.serverUrl,
+            isActive: true
+          };
           
-          // Redirect to main app
-          window.location.reload();
+          const authToken = AuthService.getToken();
+          
+          // Update app state
+          actions.setAuth(authToken);
+          actions.setBoothConfig(boothConfig);
+          
+          // Call the completion callback if provided
+          if (onSetupComplete) {
+            onSetupComplete(boothConfig, authToken);
+          } else {
+            // Fallback to reload if no callback provided
+            window.location.reload();
+          }
           return;
+        }
 
         default:
           break;

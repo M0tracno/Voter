@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { SyncService } from '../services/SyncService';
 import { DatabaseService } from '../services/DatabaseService';
-import { isDemoMode } from '../config/demoConfig';
+import { isDemoMode, getDemoData, startLiveDemo, stopLiveDemo, generateDemoNotification, generateLiveStats } from '../config/demoConfig';
+import demoSoundService from '../services/DemoSoundService';
 
 // Initial state
 const initialState = {
@@ -16,6 +17,10 @@ const initialState = {
   currentVoter: null,
   verificationStep: 'search', // 'search', 'confirm', 'otp', 'result'
   verificationData: null,
+  
+  // Data
+  recentVerifications: [],
+  activeSessions: [],
   
   // Sync status
   syncStatus: {
@@ -48,6 +53,8 @@ const ActionTypes = {
   SET_VERIFICATION_DATA: 'SET_VERIFICATION_DATA',
   UPDATE_SYNC_STATUS: 'UPDATE_SYNC_STATUS',
   UPDATE_STATS: 'UPDATE_STATS',
+  SET_RECENT_VERIFICATIONS: 'SET_RECENT_VERIFICATIONS',
+  SET_ACTIVE_SESSIONS: 'SET_ACTIVE_SESSIONS',
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
   SET_NOTIFICATION: 'SET_NOTIFICATION',
@@ -136,11 +143,23 @@ function appReducer(state, action) {
         ...state,
         error: null
       };
-      
-    case ActionTypes.CLEAR_NOTIFICATION:
+        case ActionTypes.CLEAR_NOTIFICATION:
       return {
         ...state,
         notification: null
+      };
+        case ActionTypes.SET_RECENT_VERIFICATIONS:
+      return {
+        ...state,
+        recentVerifications: typeof action.payload === 'function' 
+          ? action.payload(state.recentVerifications)
+          : action.payload
+      };
+      
+    case ActionTypes.SET_ACTIVE_SESSIONS:
+      return {
+        ...state,
+        activeSessions: action.payload
       };
       
     case ActionTypes.RESET_VERIFICATION:
@@ -166,35 +185,8 @@ export function AppProvider({ children, initialConfig = {} }) {
     ...initialConfig
   });
 
-  // Auto-sync when online
-  useEffect(() => {
-    let syncInterval;
-    
-    // Skip sync setup in demo mode
-    if (!isDemoMode() && state.isOnline && state.authToken) {
-      // Initial sync
-      handleSync();
-      
-      // Set up periodic sync (every 5 minutes)
-      syncInterval = setInterval(handleSync, 5 * 60 * 1000);
-    }
-
-    return () => {
-      if (syncInterval) {
-        clearInterval(syncInterval);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.isOnline, state.authToken]);
-
-  // Update statistics periodically
-  useEffect(() => {
-    updateStats();
-    const statsInterval = setInterval(updateStats, 30000); // Every 30 seconds
-
-    return () => clearInterval(statsInterval);
-  }, []);
-
+  // Ref to track current verifications for live demo
+  const currentVerificationsRef = useRef([]);
   // Action creators
   const actions = {
     setAuth: (token) => dispatch({ type: ActionTypes.SET_AUTH, payload: token }),
@@ -223,8 +215,126 @@ export function AppProvider({ children, initialConfig = {} }) {
     
     clearNotification: () => dispatch({ type: ActionTypes.CLEAR_NOTIFICATION }),
     
-    resetVerification: () => dispatch({ type: ActionTypes.RESET_VERIFICATION })
+    resetVerification: () => dispatch({ type: ActionTypes.RESET_VERIFICATION }),
+    
+    setRecentVerifications: (verifications) => dispatch({ type: ActionTypes.SET_RECENT_VERIFICATIONS, payload: verifications }),
+    
+    setActiveSessions: (sessions) => dispatch({ type: ActionTypes.SET_ACTIVE_SESSIONS, payload: sessions }),
+
+    // Show notification with auto-clear
+    showNotification: (message, type = 'info', duration = 3000) => {
+      dispatch({ type: ActionTypes.SET_NOTIFICATION, payload: { message, type } });
+      setTimeout(() => dispatch({ type: ActionTypes.CLEAR_NOTIFICATION }), duration);
+    }
   };
+
+  // Initialize demo data on mount
+  useEffect(() => {
+    if (isDemoMode()) {
+      console.log('🎮 CONTEXT: Initializing demo data...');
+      const demoAuditLogs = getDemoData('auditLogs') || [];
+      const demoSessions = getDemoData('sessions') || [];
+        
+      // Always ensure we have arrays even if the data is null
+      currentVerificationsRef.current = demoAuditLogs;
+      dispatch({ type: ActionTypes.SET_RECENT_VERIFICATIONS, payload: demoAuditLogs });
+      console.log('🎮 CONTEXT: Set recent verifications:', demoAuditLogs.length);
+        
+      dispatch({ type: ActionTypes.SET_ACTIVE_SESSIONS, payload: demoSessions });
+      console.log('🎮 CONTEXT: Set active sessions:', demoSessions.length);
+        
+      // Start live demo updates
+      console.log('🎮 CONTEXT: Starting live demo updates...');
+      
+      // Announce demo startup - only if sound service is ready
+      setTimeout(() => {
+        try {
+          demoSoundService.announceStartup();
+        } catch (error) {
+          console.warn('Demo sound service not ready');
+        }
+      }, 2000);
+      const liveInterval = startLiveDemo((newVerification) => {
+        console.log('🎮 LIVE DEMO: New verification:', newVerification.voter_name);
+          // Add to recent verifications (keep only last 20)
+        currentVerificationsRef.current = [newVerification, ...currentVerificationsRef.current].slice(0, 20);
+        dispatch({ 
+          type: ActionTypes.SET_RECENT_VERIFICATIONS, 
+          payload: currentVerificationsRef.current
+        });
+          // Play sound and announce verification
+        const isSuccess = newVerification.verification_result === 'SUCCESS';
+        demoSoundService.announceVerification(
+          newVerification.voter_name, 
+          newVerification.verification_method, 
+          isSuccess
+        );
+        
+        // Show notification for successful verifications
+        if (newVerification.verification_result === 'SUCCESS') {
+          dispatch({ 
+            type: ActionTypes.SET_NOTIFICATION, 
+            payload: { 
+              message: `✅ ${newVerification.voter_name} verified successfully via ${newVerification.verification_method}`,
+              type: 'success' 
+            } 
+          });
+          setTimeout(() => dispatch({ type: ActionTypes.CLEAR_NOTIFICATION }), 4000);
+        }
+      });      // Generate periodic notifications
+      const notificationInterval = setInterval(() => {
+        const notification = generateDemoNotification();
+        dispatch({ 
+          type: ActionTypes.SET_NOTIFICATION, 
+          payload: { message: notification.message, type: notification.type } 
+        });
+        setTimeout(() => dispatch({ type: ActionTypes.CLEAR_NOTIFICATION }), 5000);
+      }, 20000); // Every 20 seconds
+
+      // Update stats periodically
+      const statsInterval = setInterval(() => {
+        const liveStats = generateLiveStats();
+        dispatch({ type: ActionTypes.UPDATE_STATS, payload: liveStats });
+      }, 5000); // Every 5 seconds
+
+      // Cleanup function
+      return () => {
+        if (liveInterval) stopLiveDemo(liveInterval);
+        if (notificationInterval) clearInterval(notificationInterval);
+        if (statsInterval) clearInterval(statsInterval);
+      };
+    }
+  }, []);
+
+  // Auto-sync when online
+  useEffect(() => {
+    let syncInterval;
+    
+    // Skip sync setup in demo mode
+    if (!isDemoMode() && state.isOnline && state.authToken) {
+      // Initial sync
+      handleSync();
+      
+      // Set up periodic sync (every 5 minutes)
+      syncInterval = setInterval(handleSync, 5 * 60 * 1000);
+    }
+
+    return () => {
+      if (syncInterval) {
+        clearInterval(syncInterval);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.isOnline, state.authToken]);
+
+  // Update statistics periodically
+  useEffect(() => {
+    if (!isDemoMode()) {
+      updateStats();
+      const statsInterval = setInterval(updateStats, 30000); // Every 30 seconds
+      return () => clearInterval(statsInterval);
+    }
+  }, []);
   // Helper functions
   const handleSync = async () => {
     // Skip sync in demo mode
@@ -294,9 +404,27 @@ export function AppProvider({ children, initialConfig = {} }) {
   // Enhanced actions
   const enhancedActions = {
     ...actions,
-    
-    // Manual sync trigger
+      // Manual sync trigger
     triggerSync: handleSync,
+
+    // Demo-specific methods
+    searchVoter: async (query) => {
+      if (isDemoMode()) {
+        const demoVoters = getDemoData('voters');
+        return demoVoters.filter(voter => 
+          voter.voterId.toLowerCase().includes(query.toLowerCase()) ||
+          voter.name.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+      // Normal mode implementation would go here
+      return [];
+    },
+
+    selectVoter: (voter) => {
+      actions.setCurrentVoter(voter);
+    },
+
+    handleSync: isDemoMode() ? () => Promise.resolve() : handleSync,
     
     // Add audit log
     addAuditLog: async (logData) => {
@@ -325,11 +453,11 @@ export function AppProvider({ children, initialConfig = {} }) {
       actions.setNotification({ message, type });
       setTimeout(() => actions.clearNotification(), duration);
     }
-  };
-
-  const value = {
-    state,
-    actions: enhancedActions
+  };  const value = {
+    ...state,
+    actions: enhancedActions,
+    // Computed properties
+    pendingSyncCount: state.syncStatus?.pendingLogs || 0
   };
 
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
   Search, 
@@ -16,14 +16,14 @@ import {
 import { useApp } from '../../context/AppContext';
 import { isDemoMode } from '../../config/demoConfig';
 
-function Layout() {
+function Layout({ children }) {
   const location = useLocation();
   const { 
     isOnline, 
     boothConfig, 
     syncStatus, 
     pendingSyncCount,
-    isAuthenticated 
+    authToken 
   } = useApp();
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
@@ -44,8 +44,7 @@ function Layout() {
   const isActivePath = (path) => {
     return location.pathname === path;
   };
-
-  if (!isAuthenticated || !boothConfig) {
+  if (!authToken || !boothConfig) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -183,11 +182,9 @@ function Layout() {
               )}
             </div>
           </div>
-        </nav>
-
-        {/* Main Content */}
+        </nav>        {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>

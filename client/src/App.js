@@ -15,6 +15,7 @@ import DemoBanner from './components/Demo/DemoBanner';
 import FaceVerification from './components/FaceVerification/FaceVerification';
 import DocumentVerification from './components/DocumentVerification/DocumentVerification';
 import AnalyticsDashboard from './components/Analytics/AnalyticsDashboard';
+import Notification from './components/Notification/Notification';
 
 // Services
 import { DatabaseService } from './services/DatabaseService';
@@ -33,123 +34,152 @@ function App() {
   const [boothConfig, setBoothConfig] = useState(null);
 
   useEffect(() => {
-    // Initialize the application
     initializeApp();
 
-    // Set up online/offline detection
-    window.addEventListener('online', () => setIsOnline(true));
-    window.addEventListener('offline', () => setIsOnline(false));
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener('online', () => setIsOnline(true));
-      window.removeEventListener('offline', () => setIsOnline(false));
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);  const initializeApp = async () => {
     try {
-      console.log('Starting app initialization...');
-      
-      // Check if demo mode is enabled
       if (isDemoMode()) {
-        console.log('Demo mode enabled - using demo data');
-        setBoothConfig(getDemoData('booth'));
-        setAuthToken('demo-token');
+        // Set demo data immediately
+        const demoBoothConfig = getDemoData('booth');
+        const demoToken = 'demo-token-' + Date.now();
+        
+        setBoothConfig(demoBoothConfig);
+        setAuthToken(demoToken);
         setIsInitialized(true);
         return;
       }
       
-      // Initialize local database
-      await DatabaseService.initialize();
-      console.log('Database initialized successfully');
-
-      // Check for existing booth configuration
+      // Normal mode initialization
       try {
+        await DatabaseService.initialize();
+
         const config = await DatabaseService.getBoothConfig();
         if (config) {
           setBoothConfig(config);
           
-          // Validate authentication
           const token = AuthService.getToken();
           if (token && AuthService.isTokenValid(token)) {
             setAuthToken(token);
           }
         }
-      } catch (configError) {
-        console.error('Failed to load booth config:', configError);
-        // Continue without config - user will need to set up
+      } catch (error) {
+        console.warn('⚠️ Database/config error (will show setup):', error.message);
       }
 
       setIsInitialized(true);
-      console.log('App initialization completed');
     } catch (error) {
-      console.error('Failed to initialize app:', error);
-      console.error('App initialization error details:', error.name, error.message);
-      setIsInitialized(true); // Still show UI even if initialization fails
+      console.error('❌ App initialization failed:', error);
+      setIsInitialized(true); // Still show UI
     }
   };
+  const handleSetupComplete = (config, token) => {
+    setBoothConfig(config);
+    setAuthToken(token);
+  };
 
+  // Loading screen
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner w-12 h-12 border-primary-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">FastVerify</h2>
           <p className="text-gray-500">Initializing application...</p>
         </div>
       </div>
     );
-  }  // Show setup page if booth is not configured
-  if (!boothConfig || !authToken) {
+  }
+  // Toast Container Component
+  const ToastNotifications = () => (
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+    />
+  );  // Main App Content
+  const MainApp = ({ showDemoBanner = false }) => {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {showDemoBanner && <DemoBanner />}
+        
+        {!isOnline && (
+          <div className="bg-yellow-500 text-white text-center py-2 px-4">
+            <span className="font-medium">⚠️ Offline Mode - Data will sync when connection is restored</span>
+          </div>
+        )}
+        
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<VoterSearch />} />
+            <Route path="/verify/:voterId" element={<VoterVerification />} />
+            <Route path="/audit" element={<AuditLogs />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/face-verification" element={<FaceVerification />} />
+            <Route path="/document-verification" element={<DocumentVerification />} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>        </Layout>
+
+        <ToastNotifications />
+        <Notification />
+      </div>
+    );
+  };// Demo mode - always show main app
+  if (isDemoMode()) {
+    const demoBoothConfig = boothConfig || getDemoData('booth');
+    const demoToken = authToken || 'demo-token';
+    
+    return (
+      <AppProvider initialConfig={{ 
+        boothConfig: demoBoothConfig, 
+        authToken: demoToken, 
+        isOnline 
+      }}>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <MainApp showDemoBanner={true} />
+        </Router>
+      </AppProvider>
+    );
+  }
+
+  // Normal mode - check if setup is needed
+  const needsSetup = !boothConfig || !authToken;
+
+  if (needsSetup) {
     return (
       <AppProvider initialConfig={{ boothConfig, authToken, isOnline }}>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-            <Setup />
+            <Setup onSetupComplete={handleSetupComplete} />
           </div>
         </Router>
       </AppProvider>
     );
-  }  return (
+  }
+
+  // Normal mode with complete setup
+  return (
     <AppProvider initialConfig={{ boothConfig, authToken, isOnline }}>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <div className="min-h-screen bg-gray-50">
-          {/* Demo Mode Banner */}
-          <DemoBanner />
-          
-          {/* Offline Indicator */}
-          {!isOnline && (
-            <div className="bg-yellow-500 text-white text-center py-2 px-4">
-              <span className="font-medium">⚠️ Offline Mode - Data will sync when connection is restored</span>
-            </div>
-          )}
-
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/search" element={<VoterSearch />} />
-              <Route path="/verify/:voterId" element={<VoterVerification />} />
-              <Route path="/audit" element={<AuditLogs />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/face-verification" element={<FaceVerification />} />
-              <Route path="/document-verification" element={<DocumentVerification />} />
-              <Route path="/analytics" element={<AnalyticsDashboard />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Layout>
-
-          {/* Toast Notifications */}
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-        </div>
+        <MainApp showDemoBanner={false} />
       </Router>
     </AppProvider>
   );

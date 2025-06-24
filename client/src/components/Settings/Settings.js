@@ -17,8 +17,10 @@ import {
   NoSymbolIcon
 } from '@heroicons/react/24/outline';
 
-const Settings = () => {
-  const { state, actions } = useApp();
+const Settings = () => {  const { 
+    syncStatus,
+    actions 
+  } = useApp();
   const [settings, setSettings] = useState({
     serverUrl: 'http://localhost:3001',
     syncInterval: 300, // 5 minutes
@@ -166,12 +168,11 @@ const Settings = () => {
   const forceSync = async () => {
     try {
       actions.updateSyncStatus({ isSyncing: true });
-      
-      const pendingLogs = await DatabaseService.getPendingAuditLogs();
+        const pendingLogs = await DatabaseService.getPendingAuditLogs();
       const result = await SyncService.performFullSync(
         boothConfig?.booth_id,
         pendingLogs,
-        state.lastSyncTime
+        syncStatus?.lastSync
       );
 
       if (result.success) {
@@ -453,16 +454,14 @@ const Settings = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
               <ArrowPathIcon className="w-6 h-6 mr-2" />
               System Actions
-            </h2>
-
-            <div className="space-y-3">
+            </h2>            <div className="space-y-3">
               <button
                 onClick={forceSync}
-                disabled={state.syncing}
+                disabled={syncStatus?.isSyncing}
                 className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                <ArrowPathIcon className={`w-4 h-4 mr-2 ${state.syncing ? 'animate-spin' : ''}`} />
-                {state.syncing ? 'Syncing...' : 'Force Sync'}
+                <ArrowPathIcon className={`w-4 h-4 mr-2 ${syncStatus?.isSyncing ? 'animate-spin' : ''}`} />
+                {syncStatus?.isSyncing ? 'Syncing...' : 'Force Sync'}
               </button>
 
               <button

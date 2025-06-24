@@ -12,22 +12,26 @@ import {
   Users,
   BarChart3,
   Camera,
-  FileText
+  FileText,
+  Zap,
+  TrendingUp,
+  Shield,
+  Eye,
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { isDemoMode, getDemoData } from '../../config/demoConfig';
+import LiveDashboard from '../LiveDashboard/LiveDashboard';
 
 function Home() {
-  const navigate = useNavigate();
-  const {
+  const navigate = useNavigate();  const {
     isOnline,
     syncStatus,
     pendingSyncCount,
-    recentVerifications,
-    handleSync,
-    clearError,
-    error,
-    loading
+    recentVerifications = [],
+    activeSessions = [],
+    actions,
+    error,    loading
   } = useApp();
 
   const [todayStats, setTodayStats] = useState({
@@ -37,7 +41,14 @@ function Home() {
   });
 
   const [quickSearchQuery, setQuickSearchQuery] = useState('');
+  const [animateStats, setAnimateStats] = useState(false);
+
+  // Trigger animation when stats change
   useEffect(() => {
+    setAnimateStats(true);
+    const timer = setTimeout(() => setAnimateStats(false), 500);
+    return () => clearTimeout(timer);
+  }, [todayStats]);  useEffect(() => {
     loadTodayStats();
   }, [recentVerifications]);
 
@@ -76,10 +87,9 @@ function Home() {
       navigate(`/search?q=${encodeURIComponent(quickSearchQuery.trim())}`);
     }
   };
-
   const handleSyncClick = async () => {
     if (isOnline && pendingSyncCount > 0) {
-      await handleSync();
+      await actions.handleSync();
     }
   };
 
@@ -100,6 +110,12 @@ function Home() {
       default: return <Activity className="w-4 h-4" />;
     }
   };
+  // Ensure recentVerifications is always an array and log for debug
+  const displayVerifications = recentVerifications || [];
+  const displaySessions = activeSessions || [];
+  
+  console.log('Home component - recentVerifications:', recentVerifications?.length);
+  console.log('Home component - activeSessions:', activeSessions?.length);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -141,15 +157,13 @@ function Home() {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Error Alert */}
+          </div>          {/* Error Alert */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-between">
                 <p className="text-red-800">{error}</p>
                 <button
-                  onClick={clearError}
+                  onClick={actions.clearError}
                   className="text-red-600 hover:text-red-800"
                 >
                   ×
@@ -183,16 +197,77 @@ function Home() {
           </form>
           <p className="text-sm text-gray-500 mt-2">
             Search by Voter ID (exact or partial) or full name
-          </p>
-        </div>
+          </p>        </div>
 
-        {/* Stats Cards */}
+        {/* Enhanced Demo Dashboard - Real-time Activity */}
+        {isDemoMode() && (
+          <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 mb-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Zap className="w-6 h-6" />
+                  Live Demo Mode - Real-time Verification System
+                </h2>
+                <p className="text-blue-100 text-sm">
+                  Simulating active voter verification with AI-powered authentication
+                </p>
+              </div>
+              <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">Live System</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-5 h-5 text-green-300" />
+                  <span className="text-sm text-blue-100">Active Now</span>
+                </div>
+                <p className="text-2xl font-bold">{displaySessions.length || 0}</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-yellow-300" />
+                  <span className="text-sm text-blue-100">Success Rate</span>
+                </div>
+                <p className="text-2xl font-bold">
+                  {todayStats.total > 0 ? Math.round((todayStats.successful / todayStats.total) * 100) : 85}%
+                </p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-5 h-5 text-purple-300" />
+                  <span className="text-sm text-blue-100">Security</span>
+                </div>
+                <p className="text-lg font-bold text-green-300">Optimal</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="w-5 h-5 text-cyan-300" />
+                  <span className="text-sm text-blue-100">AI Confidence</span>
+                </div>
+                <p className="text-2xl font-bold">94%</p>
+              </div>
+            </div>
+          </div>
+        )}        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className={`bg-white rounded-lg shadow-sm border p-6 transition-all duration-300 ${animateStats ? 'scale-105 shadow-md' : ''}`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Today&apos;s Verifications</p>
-                <p className="text-2xl font-bold text-gray-900">{todayStats.total}</p>
+                <p className={`text-2xl font-bold text-gray-900 transition-all duration-300 ${animateStats ? 'text-blue-600' : ''}`}>
+                  {todayStats.total}
+                </p>
+                {isDemoMode() && (
+                  <p className="text-xs text-green-600 font-medium mt-1">
+                    +{Math.floor(Math.random() * 5) + 1} in last minute
+                  </p>
+                )}
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -200,11 +275,18 @@ function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className={`bg-white rounded-lg shadow-sm border p-6 transition-all duration-300 ${animateStats ? 'scale-105 shadow-md' : ''}`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Successful</p>
-                <p className="text-2xl font-bold text-green-600">{todayStats.successful}</p>
+                <p className={`text-2xl font-bold text-green-600 transition-all duration-300 ${animateStats ? 'text-green-500' : ''}`}>
+                  {todayStats.successful}
+                </p>
+                {isDemoMode() && todayStats.total > 0 && (
+                  <p className="text-xs text-green-600 font-medium mt-1">
+                    {Math.round((todayStats.successful / todayStats.total) * 100)}% success rate
+                  </p>
+                )}
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -212,18 +294,26 @@ function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className={`bg-white rounded-lg shadow-sm border p-6 transition-all duration-300 ${animateStats ? 'scale-105 shadow-md' : ''}`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Failed</p>
-                <p className="text-2xl font-bold text-red-600">{todayStats.failed}</p>
+                <p className={`text-2xl font-bold text-red-600 transition-all duration-300 ${animateStats ? 'text-red-500' : ''}`}>
+                  {todayStats.failed}
+                </p>
+                {isDemoMode() && todayStats.failed > 0 && (
+                  <p className="text-xs text-orange-600 font-medium mt-1">
+                    <AlertTriangle className="w-3 h-3 inline mr-1" />
+                    Requires attention
+                  </p>
+                )}
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <XCircle className="w-6 h-6 text-red-600" />
               </div>
             </div>
           </div>
-        </div>        {/* Action Buttons */}
+        </div>{/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Link
             to="/search"
@@ -311,13 +401,18 @@ function Home() {
               <p className="text-sm text-gray-500">Configuration & setup</p>
             </div>
           </Link>
-        </div>
-
-        {/* Recent Verifications */}
+        </div>        {/* Recent Verifications */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Verifications</h2>
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                Recent Verifications
+                {isDemoMode() && (
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    Live Updates
+                  </span>
+                )}
+              </h2>
               <Link
                 to="/audit"
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -325,24 +420,39 @@ function Home() {
                 View All
               </Link>
             </div>
-          </div>
-          
-          <div className="divide-y divide-gray-200">
-            {recentVerifications.length > 0 ? (
-              recentVerifications.slice(0, 5).map((log) => (
-                <div key={log.log_id} className="px-6 py-4 hover:bg-gray-50">
+          </div>          <div className="divide-y divide-gray-200">
+            {displayVerifications.length > 0 ? (
+              displayVerifications.slice(0, 5).map((log, index) => (
+                <div 
+                  key={log.log_id} 
+                  className={`px-6 py-4 hover:bg-gray-50 transition-all duration-300 ${
+                    index === 0 && isDemoMode() ? 'bg-blue-50 border-l-4 border-blue-400' : ''
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className={`${getStatusColor(log.verification_result)}`}>
                         {getStatusIcon(log.verification_result)}
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {log.voter_name || log.voter_id}
-                        </p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-gray-900">
+                            {log.voter_name || log.voter_id}
+                          </p>
+                          {index === 0 && isDemoMode() && (
+                            <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full animate-pulse">
+                              New
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-500">
-                          {log.verification_method} verification • {log.booth_id}
+                          {log.verification_method} verification • {log.booth_id || log.location}
                         </p>
+                        {isDemoMode() && log.details && (
+                          <p className="text-xs text-gray-400 mt-1 truncate">
+                            {log.details}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
@@ -352,6 +462,11 @@ function Home() {
                       <p className="text-xs text-gray-500">
                         {new Date(log.timestamp).toLocaleTimeString()}
                       </p>
+                      {isDemoMode() && log.duration && (
+                        <p className="text-xs text-gray-400">
+                          {(log.duration / 1000).toFixed(1)}s
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -359,14 +474,25 @@ function Home() {
             ) : (
               <div className="px-6 py-8 text-center">
                 <Activity className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500">No verifications yet today</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Start verifying voters to see activity here
+                <p className="text-gray-500">
+                  {isDemoMode() ? 'Starting demo verification system...' : 'No verifications yet today'}
                 </p>
-              </div>
-            )}
+                <p className="text-sm text-gray-400 mt-1">
+                  {isDemoMode() 
+                    ? 'Live data will appear shortly' 
+                    : 'Start verifying voters to see activity here'
+                  }
+                </p>
+              </div>            )}
           </div>
         </div>
+
+        {/* Live Dashboard - Demo Mode Only */}
+        {isDemoMode() && (
+          <div className="mb-6">
+            <LiveDashboard />
+          </div>
+        )}
       </div>
     </div>
   );
