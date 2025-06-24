@@ -24,16 +24,16 @@ module.exports = {
     'react',
     'react-hooks',
     '@typescript-eslint',
-  ],
-  rules: {
+  ],  rules: {
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': 'error',
     'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',    'no-console': 'warn',
+    'react-hooks/exhaustive-deps': 'warn',    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+    'no-useless-catch': 'off',
   },
   settings: {
     react: {

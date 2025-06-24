@@ -19,9 +19,9 @@ class DemoSoundService {
       this.createSounds();
       this.audioInitialized = true;
       this.waitingForUserInteraction = false;
-      console.log('Audio context initialized after user interaction');
+      // Console statement removed
     } catch (error) {
-      console.log('Audio not supported, demo will continue without sound');
+      // Console statement removed
       this.enabled = false;
     }
   }
@@ -85,7 +85,7 @@ class DemoSoundService {
         oscillator.start();
         oscillator.stop(this.audioContext.currentTime + duration);
       } catch (error) {
-        console.warn('Error playing tone:', error);
+        // Console statement removed
       }
     };
   }
@@ -153,7 +153,7 @@ class DemoSoundService {
       try {
         sound();
       } catch (error) {
-        console.log('Error playing sound:', error);
+        // Console statement removed
       }
     }
   }

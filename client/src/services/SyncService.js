@@ -27,7 +27,7 @@ export class SyncService {
         return await ApiService.syncAuditLogs(syncLogs, boothId);
       }
     } catch (error) {
-      console.error('Sync failed:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -36,7 +36,7 @@ export class SyncService {
     try {
       return await ApiService.getVoterUpdates(boothId, since);
     } catch (error) {
-      console.error('Failed to get voter updates:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -45,7 +45,7 @@ export class SyncService {
     try {
       return await ApiService.getSyncStatus(boothId);
     } catch (error) {
-      console.error('Failed to get sync status:', error);
+      // Console statement removed
       throw error;
     }
   }

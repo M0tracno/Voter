@@ -39,7 +39,7 @@ function FaceVerification({ voterId, onVerificationComplete, onCancel }) {
         setStream(mediaStream);
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      // Console statement removed
       setError('Unable to access camera. Please ensure camera permissions are granted.');
     }
   };
@@ -140,7 +140,7 @@ function FaceVerification({ voterId, onVerificationComplete, onCancel }) {
         setError('Face verification API not implemented in this demo');
       }
     } catch (error) {
-      console.error('Verification error:', error);
+      // Console statement removed
       setError('Verification failed due to a technical error. Please try again.');
     } finally {
       setIsProcessing(false);

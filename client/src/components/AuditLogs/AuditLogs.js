@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { DatabaseService } from '../../services/DatabaseService';
 import { isDemoMode, getDemoData, simulateApiCall } from '../../config/demoConfig';
@@ -32,15 +32,15 @@ const AuditLogs = () => {
     failed: 0,
     pending: 0
   });
-
   useEffect(() => {
     loadAuditLogs();
-  }, []);
+  }, [loadAuditLogs]);
 
   useEffect(() => {
     applyFilters();
-  }, [logs, filters]);
-  const loadAuditLogs = async () => {
+  }, [applyFilters, logs, filters]);
+
+  const loadAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
         if (isDemoMode()) {
@@ -48,7 +48,7 @@ const AuditLogs = () => {
         await simulateApiCall(null, 600);
         const demoLogs = getDemoData('auditLogs');
         
-        console.log('AuditLogs component - demoLogs:', demoLogs?.length);
+        // Log removed for production
         
         // Convert demo logs to match expected format
         const formattedLogs = demoLogs.map(log => ({
@@ -76,12 +76,12 @@ const AuditLogs = () => {
         calculateStats(auditLogs);
       }
     } catch (error) {
-      console.error('Failed to load audit logs:', error);
+      // Failed to load audit logs
       actions.setError('Failed to load audit logs');
     } finally {
       setLoading(false);
     }
-  };
+  }, [actions]);
   const calculateStats = (logData) => {
     const stats = {
       total: logData.length,
@@ -100,8 +100,7 @@ const AuditLogs = () => {
     };
     setStats(stats);
   };
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...logs];
 
     // Date range filter
@@ -137,7 +136,7 @@ const AuditLogs = () => {
     }
 
     setFilteredLogs(filtered);
-  };
+  }, [logs, filters]);
 
   const exportToCSV = () => {
     try {
@@ -169,11 +168,10 @@ const AuditLogs = () => {
       const a = document.createElement('a');
       a.href = url;
       a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
+      document.body.appendChild(a);      a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);    } catch (error) {
-      console.error('Failed to export CSV:', error);
+      // Failed to export CSV
       actions.setError('Failed to export audit logs');
     }
   };
@@ -184,11 +182,10 @@ const AuditLogs = () => {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        await DatabaseService.clearOldAuditLogs(thirtyDaysAgo.toISOString());        await loadAuditLogs();
-        
+        await DatabaseService.clearOldAuditLogs(thirtyDaysAgo.toISOString());        await loadAuditLogs();        
         actions.setNotification({ message: 'Old audit logs cleared successfully', type: 'success' });
       } catch (error) {
-        console.error('Failed to clear old logs:', error);
+        // Failed to clear old logs
         actions.setError('Failed to clear old logs');
       }
     }

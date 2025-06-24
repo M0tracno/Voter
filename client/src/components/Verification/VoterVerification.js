@@ -41,13 +41,12 @@ function VoterVerification() {
     }
     return () => clearTimeout(timer);
   }, [countdown]);
-
   useEffect(() => {
     // Clean up on unmount
     return () => {
       clearCurrentVerification();
     };
-  }, []);
+  }, [clearCurrentVerification]);
 
   const handleSendOTP = async () => {
     try {
@@ -60,7 +59,7 @@ function VoterVerification() {
         setAttemptCount(0);
       }
     } catch (error) {
-      console.error('Send OTP failed:', error);
+      // Console statement removed
     }
   };
 
@@ -85,7 +84,7 @@ function VoterVerification() {
         setOtpCode('');
       }
     } catch (error) {
-      console.error('Verify OTP failed:', error);
+      // Console statement removed
       setAttemptCount(prev => prev + 1);
       setOtpCode('');
     }

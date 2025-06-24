@@ -84,7 +84,7 @@ export const DEMO_CONFIG = {
       verification_method: 'QR Code Scan',
       status: 'ACTIVE',
       location: 'Main Hall H'
-    }  ]
+    }  ],
   
   // Demo user credentials
   demoUser: {
@@ -449,9 +449,8 @@ export const DEMO_CONFIG = {
         fingerprint: 'demo-fingerprint-data-15',
         faceId: 'demo-face-data-15'
       }
-    }
-  ],  // Demo analytics data
-  demoAnalytics: {
+    }  ],  // Demo analytics data
+  demoAnalyticsExtended: {
     totalVoters: 19864,
     verifiedVoters: 12847,
     pendingVerifications: 7017,
@@ -516,12 +515,11 @@ export const DEMO_CONFIG = {
     },
     topPollingStations: [
       { name: 'Demo Polling Station 001', verifications: 289, efficiency: 94 },
-      { name: 'Demo Polling Station 002', verifications: 267, efficiency: 91 },
-      { name: 'Demo Polling Station 003', verifications: 234, efficiency: 89 },
+      { name: 'Demo Polling Station 002', verifications: 267, efficiency: 91 },      { name: 'Demo Polling Station 003', verifications: 234, efficiency: 89 },
       { name: 'Demo Polling Station 004', verifications: 198, efficiency: 87 }    ]
   },
     // Active demo sessions - Complete list with all sessions
-  demoSessions: [
+  demoSessionsActive: [
     {
       session_id: 'session-001',
       voter_id: 'ABC1234567',

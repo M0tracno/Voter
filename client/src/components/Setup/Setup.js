@@ -126,12 +126,12 @@ const Setup = ({ onSetupComplete }) => {
     try {
       setConnectionStatus('testing');
       
-      console.log('Testing connection to:', setupData.serverUrl);
+      // Console statement removed
       
       // Update API service with the new URL
       ApiService.setBaseURL(setupData.serverUrl);
       
-      console.log('API Service base URL set to:', ApiService.baseURL);
+      // Console statement removed
       
       // Test the connection
       const response = await fetch(`${setupData.serverUrl}/api/health`);
@@ -144,7 +144,7 @@ const Setup = ({ onSetupComplete }) => {
         return false;
       }
     } catch (error) {
-      console.error('Connection test failed:', error);
+      // Console statement removed
       setConnectionStatus('failed');
       return false;
     }
@@ -179,7 +179,7 @@ const Setup = ({ onSetupComplete }) => {
       
       return false;
     } catch (error) {
-      console.error('Booth registration failed:', error);
+      // Console statement removed
       throw error;
     }
   };
@@ -205,7 +205,7 @@ const Setup = ({ onSetupComplete }) => {
       
       return true;
     } catch (error) {
-      console.error('Database initialization failed:', error);
+      // Console statement removed
       throw error;
     }
   };
@@ -271,7 +271,7 @@ const Setup = ({ onSetupComplete }) => {
       }
 
       setCurrentStep(currentStep + 1);    } catch (error) {
-      console.error('Setup step failed:', error);
+      // Console statement removed
       actions.setError(error.message || 'Setup failed. Please try again.');
     } finally {
       setLoading(false);

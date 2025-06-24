@@ -22,10 +22,10 @@ const db = new FastVerifyDB();
 // Database service class
 export class DatabaseService {  static async initialize() {
     try {
-      console.log('Initializing database...');
+      // Console statement removed
       
       await db.open();
-      console.log('✅ Local database initialized');
+      // Console statement removed
       
       // Set default configuration if not exists
       try {
@@ -38,17 +38,17 @@ export class DatabaseService {  static async initialize() {
               created_at: new Date().toISOString()
             })
           });
-          console.log('✅ Database configuration initialized');
+          // Console statement removed
         }
       } catch (configError) {
-        console.error('Failed to set initial config:', configError);
+        // Console statement removed
         // Continue anyway, this is not critical
       }
       
       return true;
     } catch (error) {
-      console.error('Failed to initialize database:', error);
-      console.error('Error details:', error.name, error.message, error.stack);
+      // Console statement removed
+      // Console statement removed
       throw error;
     }
   }
@@ -61,12 +61,12 @@ export class DatabaseService {  static async initialize() {
       
       // Delete the database completely
       await db.delete();
-      console.log('🗑️ Old database cleared');
+      // Console statement removed
       
       return true;
     } catch (error) {
-      console.error('Failed to clear database:', error);
-      console.error('Clear database error details:', error.name, error.message);
+      // Console statement removed
+      // Console statement removed
       // Continue anyway, as this might fail if database doesn't exist
       return false;
     }
@@ -80,7 +80,7 @@ export class DatabaseService {  static async initialize() {
         value: JSON.stringify(config)
       });
     } catch (error) {
-      console.error('Failed to save booth config:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -90,7 +90,7 @@ export class DatabaseService {  static async initialize() {
       const config = await db.config.where('key').equals('booth_config').first();
       return config ? JSON.parse(config.value) : null;
     } catch (error) {
-      console.error('Failed to get booth config:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -103,7 +103,7 @@ export class DatabaseService {  static async initialize() {
         updated_at: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Failed to save sync time:', error);
+      // Console statement removed
     }
   }
 
@@ -112,7 +112,7 @@ export class DatabaseService {  static async initialize() {
       const sync = await db.syncStatus.where('key').equals('last_sync').first();
       return sync ? sync.value : null;
     } catch (error) {
-      console.error('Failed to get last sync time:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -123,7 +123,7 @@ export class DatabaseService {  static async initialize() {
       await db.voters.bulkPut(voters);
       return voters.length;
     } catch (error) {
-      console.error('Failed to add voters:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -139,7 +139,7 @@ export class DatabaseService {  static async initialize() {
       }
       return voters.length;
     } catch (error) {
-      console.error('Failed to update voters:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -148,7 +148,7 @@ export class DatabaseService {  static async initialize() {
     try {
       return await db.voters.where('voter_id').equals(voterId).first();
     } catch (error) {
-      console.error('Failed to get voter:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -177,7 +177,7 @@ export class DatabaseService {  static async initialize() {
         .limit(limit)
         .toArray();
     } catch (error) {
-      console.error('Failed to search voters:', error);
+      // Console statement removed
       return [];
     }
   }
@@ -189,7 +189,7 @@ export class DatabaseService {  static async initialize() {
       }
       return await db.voters.where('is_active').equals(1).count();
     } catch (error) {
-      console.error('Failed to get voter count:', error);
+      // Console statement removed
       return 0;
     }
   }
@@ -212,7 +212,7 @@ export class DatabaseService {  static async initialize() {
       const id = await db.auditLogs.add(auditLog);
       return { ...auditLog, id };
     } catch (error) {
-      console.error('Failed to add audit log:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -224,7 +224,7 @@ export class DatabaseService {  static async initialize() {
         .limit(limit)
         .toArray();
     } catch (error) {
-      console.error('Failed to get pending audit logs:', error);
+      // Console statement removed
       return [];
     }
   }
@@ -235,7 +235,7 @@ export class DatabaseService {  static async initialize() {
         .anyOf(logIds)
         .modify({ is_synced: 1, synced_at: new Date().toISOString() });
     } catch (error) {
-      console.error('Failed to mark logs as synced:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -247,7 +247,7 @@ export class DatabaseService {  static async initialize() {
       }
       return await db.auditLogs.where('is_synced').equals(0).count();
     } catch (error) {
-      console.error('Failed to get pending logs count:', error);
+      // Console statement removed
       return 0;
     }
   }
@@ -279,7 +279,7 @@ export class DatabaseService {  static async initialize() {
 
       return await collection.limit(limit).toArray();
     } catch (error) {
-      console.error('Failed to get audit logs:', error);
+      // Console statement removed
       return [];
     }
   }
@@ -305,7 +305,7 @@ export class DatabaseService {  static async initialize() {
         successRate: todayLogs.length > 0 ? (successful / todayLogs.length * 100).toFixed(1) : 0
       };
     } catch (error) {
-      console.error('Failed to get today stats:', error);
+      // Console statement removed
       return {
         todayVerifications: 0,
         successfulVerifications: 0,
@@ -323,7 +323,7 @@ export class DatabaseService {  static async initialize() {
         created_at: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Failed to add OTP verification:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -335,7 +335,7 @@ export class DatabaseService {  static async initialize() {
         .equals(verificationId)
         .first();
     } catch (error) {
-      console.error('Failed to get OTP verification:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -347,7 +347,7 @@ export class DatabaseService {  static async initialize() {
         .equals(verificationId)
         .modify(updates);
     } catch (error) {
-      console.error('Failed to update OTP verification:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -369,7 +369,7 @@ export class DatabaseService {  static async initialize() {
       
       return secret.value;
     } catch (error) {
-      console.error('Failed to get HMAC secret:', error);
+      // Console statement removed
       // Fallback to default (not secure for production)
       return 'default-secret-change-in-production';
     }
@@ -410,7 +410,7 @@ export class DatabaseService {  static async initialize() {
 
       return csvContent;
     } catch (error) {
-      console.error('Failed to export audit logs:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -435,10 +435,10 @@ export class DatabaseService {  static async initialize() {
         .and(log => log.is_synced === 1)
         .delete();
 
-      console.log(`🧹 Cleaned up ${deletedLogs} old records`);
+      // Console statement removed
       return deletedLogs;
     } catch (error) {
-      console.error('Failed to cleanup old data:', error);
+      // Console statement removed
       return 0;
     }
   }
@@ -463,7 +463,7 @@ export class DatabaseService {  static async initialize() {
         version: '1.0.0'
       };
     } catch (error) {
-      console.error('Failed to get database info:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -479,7 +479,7 @@ export class DatabaseService {  static async initialize() {
       await db.config.put(settingsData);
       return true;
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -489,7 +489,7 @@ export class DatabaseService {  static async initialize() {
       const config = await db.config.where('key').equals('app_settings').first();
       return config ? JSON.parse(config.value) : null;
     } catch (error) {
-      console.error('Failed to get settings:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -507,7 +507,7 @@ export class DatabaseService {  static async initialize() {
       
       return true;
     } catch (error) {
-      console.error('Failed to clear cache:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -522,7 +522,7 @@ export class DatabaseService {  static async initialize() {
       
       return count;
     } catch (error) {
-      console.error('Failed to clear old audit logs:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -536,7 +536,7 @@ export class DatabaseService {  static async initialize() {
       
       return true;
     } catch (error) {
-      console.error('Failed to mark audit logs as synced:', error);
+      // Console statement removed
       throw error;
     }
   }

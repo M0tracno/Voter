@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { DatabaseService } from '../../services/DatabaseService';
 import { AuthService } from '../../services/AuthService';
@@ -36,13 +36,13 @@ const Settings = () => {  const {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-
   useEffect(() => {
     loadSettings();
     loadBoothConfig();
     checkConnection();
-  }, []);
-  const loadSettings = async () => {
+  }, [loadSettings]);
+
+  const loadSettings = useCallback(async () => {
     try {
       if (isDemoMode()) {
         // Use demo settings
@@ -60,23 +60,21 @@ const Settings = () => {  const {
           ...demoSettings.notifications
         });
         return;
-      }
-
-      const savedSettings = await DatabaseService.getSettings();
+      }      const savedSettings = await DatabaseService.getSettings();
       if (savedSettings) {
         setSettings({ ...settings, ...savedSettings });
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      // Failed to load settings
     }
-  };
+  }, [settings]);
 
   const loadBoothConfig = async () => {
     try {
       const config = AuthService.getBoothConfig();
       setBoothConfig(config);
     } catch (error) {
-      console.error('Failed to load booth config:', error);
+      // Console statement removed
     } finally {
       setLoading(false);
     }
@@ -103,7 +101,7 @@ const Settings = () => {  const {
 
       actions.setNotification({ message: 'Settings saved successfully', type: 'success' });
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      // Console statement removed
       actions.setError('Failed to save settings');
     } finally {
       setSaving(false);
@@ -131,7 +129,7 @@ const Settings = () => {  const {
       if (!isReachable) {
         ApiService.setBaseURL(originalUrl);
       }    } catch (error) {
-      console.error('Connection test failed:', error);
+      // Console statement removed
       setConnectionStatus('disconnected');
       actions.setError('Connection test failed: ' + error.message);
     } finally {
@@ -144,7 +142,7 @@ const Settings = () => {  const {
       try {        await DatabaseService.clearCache();
         actions.setNotification({ message: 'Cache cleared successfully', type: 'success' });
       } catch (error) {
-        console.error('Failed to clear cache:', error);
+        // Console statement removed
         actions.setError('Failed to clear cache');
       }
     }
@@ -193,7 +191,7 @@ const Settings = () => {  const {
         actions.setError('Sync failed: ' + result.error);
       }
     } catch (error) {
-      console.error('Force sync failed:', error);
+      // Console statement removed
       actions.updateSyncStatus({ 
         isSyncing: false,
         syncError: error.message

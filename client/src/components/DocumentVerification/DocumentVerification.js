@@ -30,7 +30,7 @@ function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
       }
       setCaptureMode(true);
     } catch (err) {
-      console.error('Camera access error:', err);
+      // Console statement removed
       setError('Unable to access camera. Please check permissions.');
     }
   };
@@ -156,7 +156,7 @@ function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
         }
       }
     } catch (error) {
-      console.error('Document verification error:', error);
+      // Console statement removed
       setError(error.message || 'Failed to verify document');
     } finally {
       setLoading(false);
@@ -199,7 +199,7 @@ function DocumentVerification({ voterId, onVerificationComplete, onCancel }) {
             <DocumentVerification 
               voterId="demo-voter-001"
               onVerificationComplete={(result) => {
-                console.log('Demo verification result:', result);
+                // Console statement removed
                 alert(`Demo document verification completed! Success: ${result.success}, Type: ${result.documentType}, Confidence: ${(result.confidence * 100).toFixed(1)}%`);
               }}
               onCancel={() => window.history.back()}

@@ -16,7 +16,7 @@ export class AuthService {
       }
       return true;
     } catch (error) {
-      console.error('Failed to store tokens:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -27,7 +27,7 @@ export class AuthService {
       localStorage.setItem(this.TOKEN_KEY, token);
       return true;
     } catch (error) {
-      console.error('Failed to store token:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -37,7 +37,7 @@ export class AuthService {
     try {
       return localStorage.getItem(this.TOKEN_KEY);
     } catch (error) {
-      console.error('Failed to get token:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -47,7 +47,7 @@ export class AuthService {
     try {
       return localStorage.getItem(this.REFRESH_TOKEN_KEY);
     } catch (error) {
-      console.error('Failed to get refresh token:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -59,7 +59,7 @@ export class AuthService {
       localStorage.removeItem(this.REFRESH_TOKEN_KEY);
       return true;
     } catch (error) {
-      console.error('Failed to remove tokens:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -85,7 +85,7 @@ export class AuthService {
 
       return true;
     } catch (error) {
-      console.error('Token validation failed:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -101,7 +101,7 @@ export class AuthService {
 
       return decoded.exp < currentTime;
     } catch (error) {
-      console.error('Token expiry check failed:', error);
+      // Console statement removed
       return true;
     }
   }
@@ -114,7 +114,7 @@ export class AuthService {
 
       return jwtDecode(authToken);
     } catch (error) {
-      console.error('Failed to decode token:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -125,7 +125,7 @@ export class AuthService {
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
       return true;
     } catch (error) {
-      console.error('Failed to store user:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -136,7 +136,7 @@ export class AuthService {
       const user = localStorage.getItem(this.USER_KEY);
       return user ? JSON.parse(user) : null;
     } catch (error) {
-      console.error('Failed to get user:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -147,7 +147,7 @@ export class AuthService {
       localStorage.setItem(this.BOOTH_ID_KEY, boothId);
       return true;
     } catch (error) {
-      console.error('Failed to store booth ID:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -157,7 +157,7 @@ export class AuthService {
     try {
       return localStorage.getItem(this.BOOTH_ID_KEY);
     } catch (error) {
-      console.error('Failed to get booth ID:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -168,7 +168,7 @@ export class AuthService {
       localStorage.setItem(this.BOOTH_CONFIG_KEY, JSON.stringify(config));
       return true;
     } catch (error) {
-      console.error('Failed to store booth config:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -179,7 +179,7 @@ export class AuthService {
       const config = localStorage.getItem(this.BOOTH_CONFIG_KEY);
       return config ? JSON.parse(config) : null;
     } catch (error) {
-      console.error('Failed to get booth config:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -190,7 +190,7 @@ export class AuthService {
       localStorage.removeItem(this.BOOTH_CONFIG_KEY);
       return true;
     } catch (error) {
-      console.error('Failed to remove booth config:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -203,7 +203,7 @@ export class AuthService {
       localStorage.removeItem(this.BOOTH_ID_KEY);
       return true;
     } catch (error) {
-      console.error('Failed to clear auth data:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -229,7 +229,7 @@ export class AuthService {
         throw new Error('Failed to refresh token');
       }
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      // Console statement removed
       this.logout();
       throw error;
     }
@@ -267,7 +267,7 @@ export class AuthService {
 
       return Math.max(0, timeRemaining);
     } catch (error) {
-      console.error('Failed to get token time remaining:', error);
+      // Console statement removed
       return 0;
     }
   }
@@ -296,19 +296,19 @@ export class AuthService {
       
       // Refresh if less than 5 minutes remaining
       if (timeRemaining > 0 && timeRemaining < 5 * 60) {
-        console.log('Token will expire soon, refreshing...');
+        // Console statement removed
         try {
           await this.refreshToken();
           return true;
         } catch (error) {
-          console.error('Token refresh failed:', error);
+          // Console statement removed
           return false;
         }
       }
       
       return true;
     } catch (error) {
-      console.error('Token refresh check failed:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -373,7 +373,7 @@ export class AuthService {
         await ApiService.logout();
       } catch (error) {
         // Ignore API logout errors
-        console.warn('API logout failed:', error);
+        // Console statement removed
       }
 
       // Clear local storage
@@ -395,13 +395,13 @@ export class AuthService {
         try {
           localStorage.removeItem(key);
         } catch (error) {
-          console.error(`Failed to remove ${key}:`, error);
+          // Console statement removed
         }
       });
       
       return true;
     } catch (error) {
-      console.error('Failed to logout:', error);
+      // Console statement removed
       return false;
     }
   }

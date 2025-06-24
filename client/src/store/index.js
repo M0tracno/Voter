@@ -64,7 +64,7 @@ export const useAuthStore = create(
           });
           notificationService.info('Logged out successfully');
         } catch (error) {
-          console.error('Logout error:', error);
+          // Console statement removed
         }
       },
 

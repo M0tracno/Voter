@@ -20,7 +20,7 @@ class WebSocketService {
       const boothId = AuthService.getBoothId();
 
       if (!token || !boothId) {
-        console.warn('Cannot connect to WebSocket: missing auth credentials');
+        // Console statement removed
         return;
       }
 
@@ -41,7 +41,7 @@ class WebSocketService {
       this.setupEventHandlers();
       
     } catch (error) {
-      console.error('WebSocket connection failed:', error);
+      // Console statement removed
     }
   }
 
@@ -50,7 +50,7 @@ class WebSocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('WebSocket connected');
+      // Console statement removed
       this.isConnected = true;
       this.reconnectAttempts = 0;
       
@@ -63,13 +63,13 @@ class WebSocketService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected:', reason);
+      // Console statement removed
       this.isConnected = false;
       this.emit('connection', { status: 'disconnected', reason });
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      // Console statement removed
       this.reconnectAttempts++;
       this.emit('connection', { 
         status: 'error', 
@@ -79,7 +79,7 @@ class WebSocketService {
     });
 
     this.socket.on('auth_error', (error) => {
-      console.error('WebSocket auth error:', error);
+      // Console statement removed
       this.disconnect();
       AuthService.logout();
       this.emit('auth_error', error);
@@ -122,7 +122,7 @@ class WebSocketService {
     if (this.socket && this.isConnected) {
       this.socket.emit(event, data);
     } else {
-      console.warn(`Cannot emit ${event}: WebSocket not connected`);
+      // Console statement removed
     }
   }
 
@@ -148,7 +148,7 @@ class WebSocketService {
         try {
           callback(data);
         } catch (error) {
-          console.error(`Error in event listener for ${event}:`, error);
+          // Console statement removed
         }
       });
     }
@@ -213,11 +213,11 @@ class WebSocketService {
       const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
       
       setTimeout(() => {
-        console.log(`Attempting to reconnect (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+        // Console statement removed`);
         this.connect();
       }, delay);
     } else {
-      console.error('Max reconnection attempts reached');
+      // Console statement removed
       this.emit('connection', { status: 'failed', maxAttemptsReached: true });
     }
   }

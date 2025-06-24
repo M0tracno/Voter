@@ -30,9 +30,9 @@ class NotificationService {
       // Register service worker for push notifications
       try {
         this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registered for notifications');
+        // Console statement removed
       } catch (error) {
-        console.error('Service Worker registration failed:', error);
+        // Console statement removed
       }
     }
   }
@@ -52,7 +52,7 @@ class NotificationService {
       this.permission = permission;
       return permission === 'granted';
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      // Console statement removed
       return false;
     }
   }
@@ -81,7 +81,7 @@ class NotificationService {
         new Notification(title, defaultOptions);
       }
     } catch (error) {
-      console.error('Error showing notification:', error);
+      // Console statement removed
       // Fallback to toast
       this.info(title);
     }
@@ -111,7 +111,7 @@ class NotificationService {
 
       return subscription;
     } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
+      // Console statement removed
       throw error;
     }
   }

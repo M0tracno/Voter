@@ -71,15 +71,14 @@ function App() {
           if (token && AuthService.isTokenValid(token)) {
             setAuthToken(token);
           }
-        }
-      } catch (error) {
-        console.warn('⚠️ Database/config error (will show setup):', error.message);
+        }      } catch (error) {
+        // Database/config error - will show setup
       }
 
       setIsInitialized(true);
     } catch (error) {
-      console.error('❌ App initialization failed:', error);
-      setIsInitialized(true); // Still show UI
+      // App initialization failed - still show UI
+      setIsInitialized(true);
     }
   };
   const handleSetupComplete = (config, token) => {

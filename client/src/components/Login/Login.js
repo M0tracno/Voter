@@ -56,7 +56,7 @@ const Login = ({ onLoginSuccess }) => {
         setError(result.message || 'Invalid credentials');
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      // Console statement removed
       setError('Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);

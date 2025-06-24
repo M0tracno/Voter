@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { X, Camera, AlertCircle } from 'lucide-react';
 
@@ -22,7 +22,7 @@ function QRScanner({ onScan, onClose }) {  const scannerRef = useRef(null);
         );        qrScanner.render(
           (decodedText) => {
             // Successfully scanned
-            console.log('QR Code scanned:', decodedText);
+            // Console statement removed
             onScan(decodedText);
             cleanup();
           },
@@ -30,33 +30,32 @@ function QRScanner({ onScan, onClose }) {  const scannerRef = useRef(null);
             // Scanning failed - this is normal and happens continuously
             // Only log actual errors, not scanning attempts
             if (error.includes('NotFoundException') === false) {
-              console.warn('QR Scanner error:', error);
+              // Console statement removed
             }
           }
         );        setScanner(qrScanner);
       } catch (error) {
-        console.error('Failed to initialize QR scanner:', error);
+        // Console statement removed
         setError('Failed to initialize camera. Please check permissions.');
       }
     };
 
     // Small delay to ensure DOM is ready
-    const timer = setTimeout(initScanner, 100);
-
-    return () => {
+    const timer = setTimeout(initScanner, 100);    return () => {
       clearTimeout(timer);
       cleanup();
     };
-  }, [onScan]);
+  }, [onScan, cleanup]);
 
-  const cleanup = () => {
+  const cleanup = useCallback(() => {
     if (scanner) {
       try {
         scanner.clear();
       } catch (error) {
-        console.warn('Error cleaning up scanner:', error);      }
+        // Error cleaning up scanner
+      }
     }
-  };
+  }, [scanner]);
 
   const handleClose = () => {
     cleanup();
@@ -69,12 +68,11 @@ function QRScanner({ onScan, onClose }) {  const scannerRef = useRef(null);
       if (scanner) {
         scanner.scanFile(file, true)
           .then(decodedText => {
-            console.log('QR Code from file:', decodedText);
+            // Console statement removed
             onScan(decodedText);
             cleanup();
-          })
-          .catch(err => {
-            console.error('Failed to scan file:', err);
+          })          .catch(() => {
+            // Console statement removed
             setError('Could not read QR code from image. Please try again.');
           });
       }

@@ -15,7 +15,7 @@ function LiveDashboard() {
   const { activeSessions } = useApp();
   const displaySessions = activeSessions || [];
   
-  console.log('LiveDashboard component - activeSessions:', activeSessions?.length);
+  // Console statement removed
   const [systemMetrics, setSystemMetrics] = useState({
     cpuUsage: 45,
     memoryUsage: 68,

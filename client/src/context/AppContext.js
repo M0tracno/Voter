@@ -231,31 +231,31 @@ export function AppProvider({ children, initialConfig = {} }) {
   // Initialize demo data on mount
   useEffect(() => {
     if (isDemoMode()) {
-      console.log('🎮 CONTEXT: Initializing demo data...');
+      // Console statement removed
       const demoAuditLogs = getDemoData('auditLogs') || [];
       const demoSessions = getDemoData('sessions') || [];
         
       // Always ensure we have arrays even if the data is null
       currentVerificationsRef.current = demoAuditLogs;
       dispatch({ type: ActionTypes.SET_RECENT_VERIFICATIONS, payload: demoAuditLogs });
-      console.log('🎮 CONTEXT: Set recent verifications:', demoAuditLogs.length);
+      // Console statement removed
         
       dispatch({ type: ActionTypes.SET_ACTIVE_SESSIONS, payload: demoSessions });
-      console.log('🎮 CONTEXT: Set active sessions:', demoSessions.length);
+      // Console statement removed
         
       // Start live demo updates
-      console.log('🎮 CONTEXT: Starting live demo updates...');
+      // Console statement removed
       
       // Announce demo startup - only if sound service is ready
       setTimeout(() => {
         try {
           demoSoundService.announceStartup();
         } catch (error) {
-          console.warn('Demo sound service not ready');
+          // Console statement removed
         }
       }, 2000);
       const liveInterval = startLiveDemo((newVerification) => {
-        console.log('🎮 LIVE DEMO: New verification:', newVerification.voter_name);
+        // Console statement removed
           // Add to recent verifications (keep only last 20)
         currentVerificationsRef.current = [newVerification, ...currentVerificationsRef.current].slice(0, 20);
         dispatch({ 
@@ -326,7 +326,6 @@ export function AppProvider({ children, initialConfig = {} }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isOnline, state.authToken]);
-
   // Update statistics periodically
   useEffect(() => {
     if (!isDemoMode()) {
@@ -334,12 +333,12 @@ export function AppProvider({ children, initialConfig = {} }) {
       const statsInterval = setInterval(updateStats, 30000); // Every 30 seconds
       return () => clearInterval(statsInterval);
     }
-  }, []);
+  }, [updateStats]);
   // Helper functions
   const handleSync = async () => {
     // Skip sync in demo mode
     if (isDemoMode()) {
-      console.log('Demo mode: Skipping sync');
+      // Console statement removed
       return;
     }
 
@@ -381,7 +380,7 @@ export function AppProvider({ children, initialConfig = {} }) {
       await DatabaseService.setLastSyncTime(new Date().toISOString());
       
     } catch (error) {
-      console.error('Sync failed:', error);
+      // Console statement removed
       actions.updateSyncStatus({
         isSyncing: false,
         syncError: error.message
@@ -397,7 +396,7 @@ export function AppProvider({ children, initialConfig = {} }) {
       const pendingCount = await DatabaseService.getPendingLogsCount();
       actions.updateSyncStatus({ pendingLogs: pendingCount });
     } catch (error) {
-      console.error('Failed to update stats:', error);
+      // Console statement removed
     }
   };
 
@@ -443,7 +442,7 @@ export function AppProvider({ children, initialConfig = {} }) {
           setTimeout(handleSync, 1000); // Delay to avoid race conditions
         }
       } catch (error) {
-        console.error('Failed to add audit log:', error);
+        // Console statement removed
         actions.setError('Failed to record verification');
       }
     },

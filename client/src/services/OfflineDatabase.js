@@ -31,7 +31,7 @@ class OfflineDatabase extends Dexie {
       });
       return id;
     } catch (error) {
-      console.error('Error adding voter:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -41,7 +41,7 @@ class OfflineDatabase extends Dexie {
       const voter = await this.voters.where('voterId').equals(voterId).first();
       return voter;
     } catch (error) {
-      console.error('Error getting voter:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -79,7 +79,7 @@ class OfflineDatabase extends Dexie {
 
       return await collection.limit(50).toArray();
     } catch (error) {
-      console.error('Error searching voters:', error);
+      // Console statement removed
       return [];
     }
   }
@@ -101,7 +101,7 @@ class OfflineDatabase extends Dexie {
       
       return id;
     } catch (error) {
-      console.error('Error creating verification session:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -115,7 +115,7 @@ class OfflineDatabase extends Dexie {
       
       return true;
     } catch (error) {
-      console.error('Error updating verification session:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -124,7 +124,7 @@ class OfflineDatabase extends Dexie {
     try {
       return await this.verificationSessions.where('sessionId').equals(sessionId).first();
     } catch (error) {
-      console.error('Error getting verification session:', error);
+      // Console statement removed
       return null;
     }
   }
@@ -145,7 +145,7 @@ class OfflineDatabase extends Dexie {
       
       return id;
     } catch (error) {
-      console.error('Error adding audit log:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -168,7 +168,7 @@ class OfflineDatabase extends Dexie {
       
       return await collection.limit(100).toArray();
     } catch (error) {
-      console.error('Error getting audit logs:', error);
+      // Console statement removed
       return [];
     }
   }
@@ -185,7 +185,7 @@ class OfflineDatabase extends Dexie {
         retryCount: 0
       });
     } catch (error) {
-      console.error('Error adding to sync queue:', error);
+      // Console statement removed
     }
   }
 
@@ -193,7 +193,7 @@ class OfflineDatabase extends Dexie {
     try {
       return await this.syncQueue.where('status').equals('pending').toArray();
     } catch (error) {
-      console.error('Error getting pending sync items:', error);
+      // Console statement removed
       return [];
     }
   }
@@ -202,7 +202,7 @@ class OfflineDatabase extends Dexie {
     try {
       await this.syncQueue.update(id, { status: 'completed', syncedAt: new Date() });
     } catch (error) {
-      console.error('Error marking sync item completed:', error);
+      // Console statement removed
     }
   }
 
@@ -215,7 +215,7 @@ class OfflineDatabase extends Dexie {
         item.lastAttempt = new Date();
       });
     } catch (dbError) {
-      console.error('Error marking sync item failed:', dbError);
+      // Console statement removed
     }
   }
 
@@ -228,7 +228,7 @@ class OfflineDatabase extends Dexie {
         lastUpdated: new Date()
       });
     } catch (error) {
-      console.error('Error setting config:', error);
+      // Console statement removed
     }
   }
 
@@ -237,7 +237,7 @@ class OfflineDatabase extends Dexie {
       const config = await this.systemConfig.where('key').equals(key).first();
       return config ? config.value : defaultValue;
     } catch (error) {
-      console.error('Error getting config:', error);
+      // Console statement removed
       return defaultValue;
     }
   }
@@ -252,9 +252,9 @@ class OfflineDatabase extends Dexie {
         this.pendingUploads.clear(),
         this.syncQueue.clear()
       ]);
-      console.log('All offline data cleared');
+      // Console statement removed
     } catch (error) {
-      console.error('Error clearing data:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -271,7 +271,7 @@ class OfflineDatabase extends Dexie {
       
       return stats;
     } catch (error) {
-      console.error('Error getting storage stats:', error);
+      // Console statement removed
       return {};
     }
   }
@@ -286,9 +286,9 @@ class OfflineDatabase extends Dexie {
       }));
       
       await this.voters.bulkAdd(votersWithMetadata);
-      console.log(`Added ${voters.length} voters to offline database`);
+      // Console statement removed
     } catch (error) {
-      console.error('Error bulk adding voters:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -298,9 +298,9 @@ class OfflineDatabase extends Dexie {
       for (const update of updates) {
         await this.voters.where('voterId').equals(update.voterId).modify(update.data);
       }
-      console.log(`Updated ${updates.length} voters in offline database`);
+      // Console statement removed
     } catch (error) {
-      console.error('Error bulk updating voters:', error);
+      // Console statement removed
       throw error;
     }
   }
@@ -331,7 +331,7 @@ class OfflineDatabase extends Dexie {
         needsSync: pendingVerifications > 0 || pendingAudits > 0 || pendingSyncItems > 0
       };
     } catch (error) {
-      console.error('Error getting sync status:', error);
+      // Console statement removed
       return { needsSync: false };
     }
   }

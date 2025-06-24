@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -50,9 +50,9 @@ function Home() {
     return () => clearTimeout(timer);
   }, [todayStats]);  useEffect(() => {
     loadTodayStats();
-  }, [recentVerifications]);
+  }, [loadTodayStats, recentVerifications]);
 
-  const loadTodayStats = async () => {
+  const loadTodayStats = useCallback(async () => {
     try {
       if (isDemoMode()) {
         // Use demo analytics data
@@ -77,9 +77,9 @@ function Home() {
         failed: todayLogs.filter(log => log.verification_result === 'FAILED').length
       });
     } catch (error) {
-      console.error('Failed to load today stats:', error);
+      // Failed to load today stats
     }
-  };
+  }, [recentVerifications]);
 
   const handleQuickSearch = (e) => {
     e.preventDefault();
@@ -108,14 +108,10 @@ function Home() {
       case 'FAILED': return <XCircle className="w-4 h-4" />;
       case 'PENDING': return <Clock className="w-4 h-4" />;
       default: return <Activity className="w-4 h-4" />;
-    }
-  };
-  // Ensure recentVerifications is always an array and log for debug
+    }  };
+  // Ensure recentVerifications is always an array
   const displayVerifications = recentVerifications || [];
   const displaySessions = activeSessions || [];
-  
-  console.log('Home component - recentVerifications:', recentVerifications?.length);
-  console.log('Home component - activeSessions:', activeSessions?.length);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">

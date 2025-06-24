@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
@@ -23,15 +23,15 @@ function VoterSearch() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
-
   useEffect(() => {
     // Auto-search if query from URL
     const initialQuery = searchParams.get('q');
     if (initialQuery && initialQuery.trim()) {
       handleSearch(initialQuery.trim());
     }
-  }, []);
-  const handleSearch = async (query = searchQuery) => {
+  }, [handleSearch, searchParams]);
+
+  const handleSearch = useCallback(async (query = searchQuery) => {
     if (!query.trim()) return;
 
     setIsSearching(true);
@@ -66,14 +66,13 @@ function VoterSearch() {
       } else {
         const results = await searchVoter(query.trim(), searchType);
         setSearchResults(results);
-      }
-    } catch (error) {
-      console.error('Search failed:', error);
+      }    } catch (error) {
+      // Search failed
       setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [searchQuery, searchType, searchVoter]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -87,7 +86,7 @@ function VoterSearch() {
         navigate(`/verify/${voterId}`);
       }
     } catch (error) {
-      console.error('Voter selection failed:', error);
+      // Console statement removed
     }
   };
 
@@ -113,7 +112,7 @@ function VoterSearch() {
       }, 100);
 
     } catch (error) {
-      console.error('QR scan processing failed:', error);
+      // Console statement removed
     }
   };
 

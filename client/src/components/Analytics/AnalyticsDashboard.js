@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Users, CheckCircle, XCircle, AlertTriangle, TrendingUp, Activity } from 'lucide-react';
 import { isDemoMode, getDemoData, simulateApiCall } from '../../config/demoConfig';
 
@@ -6,12 +6,10 @@ function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('today');
-
   useEffect(() => {
     loadAnalytics();
-  }, [timeRange]);
-
-  const loadAnalytics = async () => {
+  }, [timeRange, loadAnalytics]);
+  const loadAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       if (isDemoMode()) {
@@ -29,11 +27,11 @@ function AnalyticsDashboard() {
         setAnalytics(result.data);
       }
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      // Failed to load analytics
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
 
   if (loading) {
     return (
