@@ -84,7 +84,7 @@ export const DEMO_CONFIG = {
       verification_method: 'QR Code Scan',
       status: 'ACTIVE',
       location: 'Main Hall H'
-    }  ]
+    }  ],
   
   // Demo user credentials
   demoUser: {
