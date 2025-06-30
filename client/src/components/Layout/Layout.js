@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { isDemoMode } from '../../config/demoConfig';
+import BoltBadge from '../BoltBadge';
 
 function Layout({ children }) {
   const location = useLocation();
@@ -60,6 +61,7 @@ function Layout({ children }) {
             Go to Setup
           </Link>
         </div>
+        <BoltBadge />
       </div>
     );
   }
@@ -187,6 +189,7 @@ function Layout({ children }) {
           {children}
         </main>
       </div>
+      <BoltBadge />
     </div>
   );
 }
